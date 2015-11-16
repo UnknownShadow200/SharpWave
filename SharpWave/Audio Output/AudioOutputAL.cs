@@ -9,9 +9,9 @@ using SharpWave.Containers;
 
 namespace SharpWave {
 	
-	public sealed class AudioOutputAL : IAudioOutput {
-		int source = -1;
-		int[] bufferIDs;
+	public unsafe sealed class AudioOutputAL : IAudioOutput {
+		uint source = uint.MaxValue;
+		uint[] bufferIDs;
 		AudioContext context;
 		
 		public AudioOutputAL() {
@@ -31,8 +31,14 @@ namespace SharpWave {
 			
 			// A buffer size of 2 is not enough for some codecs.
 			const int bufferSize = 3;
-			bufferIDs = AL.GenBuffers( bufferSize );
-			source = AL.GenSource();
+			bufferIDs = new uint[bufferSize];
+			fixed( uint* bufferPtr = bufferIDs )
+				AL.GenBuffers( bufferSize, bufferPtr );
+			CheckError();
+			
+			uint sourceU = 0;
+			AL.GenSources( 1, out sourceU );
+			source = sourceU;
 			CheckError();
 
 			// TODO: Handle the case where the file is less than 2 seconds long.
@@ -58,14 +64,15 @@ namespace SharpWave {
 				CheckError();
 				
 				if( buffersProcessed > 0 ) {
-					int bufferID = AL.SourceUnqueueBuffer( source );
+					uint bufferId = 0;
+					AL.SourceUnqueueBuffers( source, 1, ref bufferId );
 					
 					if( enumerator.MoveNext() ) {
 						AudioChunk chunk = enumerator.Current;
 						ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
-						AL.BufferData( bufferID, format, chunk.Data, chunk.Data.Length, chunk.Frequency );
+						AL.BufferData( bufferId, format, chunk.Data, chunk.Data.Length, chunk.Frequency );
 						CheckError();
-						AL.SourceQueueBuffer( source, bufferID );
+						AL.SourceQueueBuffers( source, 1, ref bufferId );
 						CheckError();
 					} else {
 						break;
@@ -86,8 +93,8 @@ namespace SharpWave {
 			}
 			
 			AL.DeleteBuffers( bufferIDs );
-			AL.DeleteSource( source );
-			source = -1;
+			AL.DeleteSources( 1, ref source );
+			source = uint.MaxValue;
 			bufferIDs = null;
 		}
 		
@@ -100,8 +107,8 @@ namespace SharpWave {
 		}
 		
 		public void Dispose() {
-			if( source != -1 ) {
-				AL.DeleteSource( source );
+			if( source != uint.MaxValue ) {
+				AL.DeleteSources( 1, ref source );
 				AL.DeleteBuffers( bufferIDs );
 			}
 		}
