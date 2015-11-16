@@ -141,9 +141,9 @@ namespace SharpWave.Codecs.Mpeg {
 					info.Data = decoder1.Decode( frame, bitReader );
 				} else if( layerIndex == (int)LayerIndex.Layer2 ) {
 					info.Data = decoder2.Decode( frame, bitReader );
-				}  else if( layerIndex == (int)LayerIndex.Layer3 ) {
-					info.Data = decoder3.Decode( frame, bitReader );
-				}else {
+				} else if( layerIndex == (int)LayerIndex.Layer3 ) {
+					throw new NotSupportedException( "Layer III not supported" );
+				} else {
 					throw new InvalidDataException( "Invalid layer" );
 				}
 				info.Channels = frame.Channels;
@@ -156,7 +156,6 @@ namespace SharpWave.Codecs.Mpeg {
 		}
 		LayerDecoder decoder1 = new LayerIDecoder();
 		LayerDecoder decoder2 = new LayerIIDecoder();
-		LayerDecoder decoder3 = new LayerIIIDecoder();
 		
 		static int GetBitRate( MpegVersion version, int layer, int index ) {
 			if( version == MpegVersion.Version10 ) {
