@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 10.00
+# Visual Studio 2008
+# SharpDevelop 4.4
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpWave", "SharpWave\SharpWave.csproj", "{77EA9D1E-4995-4D05-A9C7-29173CB5DC72}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WaveTest", "WaveTest\WaveTest.csproj", "{BB885D63-9F9A-4C89-885F-217588C1C218}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{77EA9D1E-4995-4D05-A9C7-29173CB5DC72}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77EA9D1E-4995-4D05-A9C7-29173CB5DC72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77EA9D1E-4995-4D05-A9C7-29173CB5DC72}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77EA9D1E-4995-4D05-A9C7-29173CB5DC72}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB885D63-9F9A-4C89-885F-217588C1C218}.Debug|Any CPU.Build.0 = Debug|x86
+		{BB885D63-9F9A-4C89-885F-217588C1C218}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{BB885D63-9F9A-4C89-885F-217588C1C218}.Release|Any CPU.Build.0 = Release|x86
+		{BB885D63-9F9A-4C89-885F-217588C1C218}.Release|Any CPU.ActiveCfg = Release|x86
+	EndGlobalSection
+EndGlobal
