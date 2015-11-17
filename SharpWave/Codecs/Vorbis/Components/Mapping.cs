@@ -34,7 +34,7 @@ namespace SharpWave.Codecs.Vorbis {
 				for( int i = 0; i < mux.Length; i++ )
 					mux[i] = (byte)reader.ReadBits( 4 );
 			} else {
-				mux = new byte[1];
+				mux = new byte[channels];
 			}
 			
 			submapFloor = new byte[submaps];

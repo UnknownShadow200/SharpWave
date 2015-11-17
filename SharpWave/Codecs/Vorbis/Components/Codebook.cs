@@ -91,11 +91,12 @@ namespace SharpWave.Codecs.Vorbis {
 			int bits = 1;
 			int value = 0;
 			
-			// TODO: the problem is here
 			while( bits <= 32 ) {
 				huffCode <<= 1;
 				huffCode |= (uint)reader.ReadBit();
-				if( tree.GetValue( huffCode, bits, out value ) ) break;
+				
+				if( tree.GetValue( huffCode, bits, out value ) ) 
+					break;
 				bits++;
 			}
 			return value;
@@ -122,11 +123,14 @@ namespace SharpWave.Codecs.Vorbis {
 		}
 		
 		bool nodeFound = false;
-		void InsertNode( int value, HuffmanNode<int> node, int bit ) {
+		void InsertNode( int value, HuffmanNode<int> node, int depth ) {
 			if( nodeFound ) return;
 			if( node.HasValue ) return;
 			
-			if( bit == 0 ) {
+			if( depth == 0 ) {
+				// we cannot add a node if there are further children down the tree
+				if( node.Left != null || node.Right != null ) return;
+				
 				node.HasValue = true;
 				node.Value = value;
 				nodeFound = true;
@@ -134,12 +138,12 @@ namespace SharpWave.Codecs.Vorbis {
 				// Keep going down the tree
 				if( node.Left == null )
 					node.Left = new HuffmanNode<int>();
-				InsertNode( value, node.Left, bit - 1 );			
+				InsertNode( value, node.Left, depth - 1 );			
 				if( nodeFound ) return;
 				
 				if( node.Right == null )
 					node.Right = new HuffmanNode<int>();
-				InsertNode( value, node.Right, bit - 1 );
+				InsertNode( value, node.Right, depth - 1 );
 			}
 		}
 	}

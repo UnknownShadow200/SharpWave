@@ -56,7 +56,7 @@ namespace SharpWave.Codecs.Vorbis {
 				int subclassMax = 1 << subclass;
 				byte[] books = new byte[subclassMax];
 				for( int j = 0; j < books.Length; j++ ) {
-					books[j] = (byte)( reader.ReadBits( 8 ) - 1 );
+					books[j] = (byte)(reader.ReadBits( 8 ) - 1);
 				}
 				subclassBooks[i] = books;
 			}
@@ -119,8 +119,8 @@ namespace SharpWave.Codecs.Vorbis {
 				
 				for( int j = 0; j < cDim; j++ ) {
 					int book = subclassBooks[classNum][cVal & cSub];
-					cVal = cVal >> cBits;
-					if( book >= 0 ) {
+					cVal = (int)((uint)cVal >> cBits);
+					if( book != 0xFF ) {
 						Codebook codebook = codec.codebookConfigs[book];
 						yList[offset++] = codebook.GetScalarContext( reader );
 					} else {
