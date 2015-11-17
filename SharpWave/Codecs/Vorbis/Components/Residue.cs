@@ -2,6 +2,11 @@
 
 namespace SharpWave.Codecs.Vorbis {
 	
+	public struct ResidueDecodeArgs {
+		public bool[] doNotDecode;
+		public int ch;
+	}
+	
 	public abstract class Residue : IVorbisComponent {
 		
 		public override void ReadSetupData( VorbisCodec codec, BitReader reader ) {

@@ -2,30 +2,17 @@
 
 namespace SharpWave.Codecs.Vorbis {
 	
-	public abstract class Floor : IVorbisComponent {
-		
+	public abstract class Floor : IVorbisComponent {		
 	}
 	
 	public class Floor0 : Floor {
 		
 		public override void ReadSetupData( VorbisCodec codec, BitReader reader ) {
-			int order = reader.ReadBits( 8 );
-			int rate = reader.ReadBits( 16 );
-			int barkMapSize = reader.ReadBits( 16 );
-			int amplitudeBits = reader.ReadBits( 6 );
-			int amplitudeOffset = reader.ReadBits( 8 );
-			int numBooks = reader.ReadBits( 4 ) + 1;
-			
-			byte[] blockList = new byte[numBooks];
-			for( int i = 0; i < blockList.Length; i++ ) {
-				blockList[i] = (byte)reader.ReadBits( 8 );
-			}
+			throw new NotSupportedException( "Floor0 not supported." );
 		}
 		
-		static double bark( double x ) {
-			return 13.1 * Math.Atan( 0.00074 * x )
-				+ 2.24 * Math.Atan( 0.0000000185 * x * x )
-				+ 0.0001 * x;
+		public override object ReadPerPacketData( VorbisCodec codec, BitReader reader, object data ) {
+			throw new NotSupportedException( "Floor0 not supported." );
 		}
 	}
 	
@@ -96,9 +83,9 @@ namespace SharpWave.Codecs.Vorbis {
 		bool emptyThisFrame;
 		int[] yList;
 		
-		public override void ReadPerPacketData( VorbisCodec codec, BitReader reader ) {
+		public override object ReadPerPacketData( VorbisCodec codec, BitReader reader, object data ) {
 			emptyThisFrame = reader.ReadBit() == 0;
-			if( emptyThisFrame ) return;
+			if( emptyThisFrame ) return true;
 			
 			int range = rangeElements[multiplier - 1];
 			int length = 2;
@@ -119,7 +106,7 @@ namespace SharpWave.Codecs.Vorbis {
 				int cVal = 0;
 				if( cBits > 0 ) {
 					int bookNum = classMasterbooks[classNum];
-					Codebook codebook = codec.codebookConfigurations[bookNum];
+					Codebook codebook = codec.codebookConfigs[bookNum];
 					cVal = codebook.GetScalarContext( reader );
 				}
 				
@@ -127,12 +114,13 @@ namespace SharpWave.Codecs.Vorbis {
 					int book = subclassBooks[classNum][cVal & cSub];
 					cVal <<= cBits;
 					if( book > 0 ) {
-						Codebook codebook = codec.codebookConfigurations[book];
+						Codebook codebook = codec.codebookConfigs[book];
 						yList[offset + j] = codebook.GetScalarContext( reader );
 					}
 				}
 				offset += cDim;
 			}
+			return false;
 		}
 		
 		public override void ApplyToFrame( VorbisCodec codec, BitReader reader ) {

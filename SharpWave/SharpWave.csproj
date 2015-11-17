@@ -44,6 +44,13 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Codecs\Vorbis\Components\Codebook.cs" />
+    <Compile Include="Codecs\Vorbis\Components\Floor.cs" />
+    <Compile Include="Codecs\Vorbis\Components\IVorbisComponent.cs" />
+    <Compile Include="Codecs\Vorbis\Components\Mapping.cs" />
+    <Compile Include="Codecs\Vorbis\Components\Mode.cs" />
+    <Compile Include="Codecs\Vorbis\Components\Residue.cs" />
+    <Compile Include="Codecs\Vorbis\VorbisCodec.Setup.cs" />
     <Compile Include="Logging\ConsoleLogger.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="OpenTK\AL.cs" />
@@ -76,12 +83,6 @@
     <Compile Include="Codecs\Mpeg\LayerIIDecoder.cs" />
     <Compile Include="Codecs\Mpeg\Mp3Codec.cs" />
     <Compile Include="Codecs\TransformerCodec.cs" />
-    <Compile Include="Codecs\Vorbis\Codebook.cs" />
-    <Compile Include="Codecs\Vorbis\Floor.cs" />
-    <Compile Include="Codecs\Vorbis\IVorbisComponent.cs" />
-    <Compile Include="Codecs\Vorbis\Mapping.cs" />
-    <Compile Include="Codecs\Vorbis\Mode.cs" />
-    <Compile Include="Codecs\Vorbis\Residue.cs" />
     <Compile Include="Codecs\Vorbis\VorbisCodec.cs" />
     <Compile Include="Codecs\Vorbis\VorbisUtils.cs" />
     <Compile Include="Containers\AuContainer.cs" />
@@ -102,6 +103,7 @@
     <Compile Include="Transformers\Transformer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Codecs\Vorbis\Components" />
     <Folder Include="Logging" />
     <Folder Include="OpenTK" />
     <Folder Include="Utils" />

@@ -6,8 +6,8 @@ namespace SharpWave.Codecs.Vorbis {
 		
 		public abstract void ReadSetupData( VorbisCodec codec, BitReader reader );
 		
-		public virtual void ReadPerPacketData( VorbisCodec codec, BitReader reader ) {
-			
+		public virtual object ReadPerPacketData( VorbisCodec codec, BitReader reader, object data ) {
+			return null;
 		}
 		
 		public virtual void ApplyToFrame( VorbisCodec codec, BitReader reader ) {
