@@ -50,9 +50,9 @@ namespace SharpWave.Utils {
 		
 		public bool GetValue( uint bits, int bitsNumber, out T value ) {
 			HuffmanNode<T> node = RootNode;
-			uint shift = 1u << ( bitsNumber - 1 );
+			uint shift = 1u << (bitsNumber - 1);
 			for( int j = 0; j < bitsNumber; j++ ) {
-				node = ( bits & shift ) == 0 ? node.Left : node.Right;
+				node = (bits & shift) == 0 ? node.Left : node.Right;
 				if( node == null ) {
 					value = default( T );
 					return false;

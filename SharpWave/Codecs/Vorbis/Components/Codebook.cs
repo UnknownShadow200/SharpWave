@@ -86,27 +86,12 @@ namespace SharpWave.Codecs.Vorbis {
 			}
 		}
 		
-		HuffmanTree<int> tree;
-		void BuildHuffmanTree() {
-			tree = new HuffmanTree<int>();
-			for( int i = 0; i < codewordLengths.Length; i++ ) {
-				byte length = codewordLengths[i];
-				if( length == 0 ) continue;
-				
-				HuffmanNode<int> node = tree.RootNode;
-				nodeFound = false;
-				InsertNode( i, node, length );
-				if( !nodeFound ) {
-					throw new InvalidOperationException( "Could not find empty branch in huffman tree!" );
-				}
-			}
-		}
-		
 		public int GetScalarContext( BitReader reader ) {
 			uint huffCode = 0;
 			int bits = 1;
 			int value = 0;
 			
+			// TODO: the problem is here
 			while( bits <= 32 ) {
 				huffCode <<= 1;
 				huffCode |= (uint)reader.ReadBit();
@@ -117,40 +102,44 @@ namespace SharpWave.Codecs.Vorbis {
 		}
 		
 		public float[] GetVQContext( BitReader reader ) {
-			uint huffCode = 0;
-			int bits = 1;
-			int value = 0;
-			
-			while( bits <= 32 ) {
-				huffCode <<= 1;
-				huffCode |= (uint)reader.ReadBit();
-				if( tree.GetValue( huffCode, bits, out value ) ) break;
-				bits++;
+			int offset = GetScalarContext( reader );
+			return VQ[offset];
+		}
+		
+		HuffmanTree<int> tree;
+		void BuildHuffmanTree() {
+			tree = new HuffmanTree<int>();
+			for( int i = 0; i < codewordLengths.Length; i++ ) {
+				byte length = codewordLengths[i];
+				if( length == 0 ) continue;
+				
+				HuffmanNode<int> node = tree.RootNode;
+				nodeFound = false;
+				InsertNode( i, node, length );
+				if( !nodeFound )
+					throw new InvalidOperationException( "Could not find empty branch in huffman tree!" );
 			}
-			return VQ[value];
 		}
 		
 		bool nodeFound = false;
-		void InsertNode( int i, HuffmanNode<int> node, int bit ) {
+		void InsertNode( int value, HuffmanNode<int> node, int bit ) {
 			if( nodeFound ) return;
 			if( node.HasValue ) return;
 			
 			if( bit == 0 ) {
 				node.HasValue = true;
-				node.Value = i;
+				node.Value = value;
 				nodeFound = true;
 			} else {
 				// Keep going down the tree
-				if( node.Left == null ) {
+				if( node.Left == null )
 					node.Left = new HuffmanNode<int>();
-				}
-				InsertNode( i, node.Left, bit - 1 );
-				
+				InsertNode( value, node.Left, bit - 1 );			
 				if( nodeFound ) return;
-				if( node.Right == null ) {
+				
+				if( node.Right == null )
 					node.Right = new HuffmanNode<int>();
-				}
-				InsertNode( i, node.Right, bit - 1 );
+				InsertNode( value, node.Right, bit - 1 );
 			}
 		}
 	}

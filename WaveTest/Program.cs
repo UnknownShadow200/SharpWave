@@ -17,8 +17,13 @@ namespace WaveTest {
 		
 		public static void Main( string[] args ) {
 
-			/*using( var player = new AudioOutputAL() ) {
-				foreach( string file in Directory.GetFiles( "resources" ) ) {
+			using( var player = new AudioOutputAL() ) {
+				using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
+					var container = new OggContainer( fs );
+					player.StreamData( container );
+				}
+				System.Diagnostics.Debugger.Break();
+				/*foreach( string file in Directory.GetFiles( "resources" ) ) {
 					try {
 					using( FileStream fs = File.OpenRead( file ) ) {
 						var container = new OggContainer( fs );
@@ -27,8 +32,10 @@ namespace WaveTest {
 						}
 					}
 					} catch { }
-				}
-			}*/
+				}*/
+			}
+			
+			
 			using( var player = new AudioOutputAL() ) {
 				using( FileStream fs = File.OpenRead( "test3.mpeg1" ) ) {
 					var container = new MpegContainer( fs );
@@ -39,7 +46,7 @@ namespace WaveTest {
 					using( FileStream fs = File.OpenRead( file ) ) {
 						var container = new WaveContainer( fs );
 						using( var player2 = new AudioOutputAL() ) {
-						player2.StreamData( container );
+							player2.StreamData( container );
 						}
 					}
 				}
