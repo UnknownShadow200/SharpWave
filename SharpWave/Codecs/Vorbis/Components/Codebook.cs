@@ -9,21 +9,23 @@ namespace SharpWave.Codecs.Vorbis {
 		byte[] codewordLengths;
 		ushort[] multiplicands;
 		float[][] VQ;
+		internal int dimensions, entries;
+		
 		public override void ReadSetupData( VorbisCodec codec, BitReader reader ) {
 			int syncPattern = reader.ReadBits( 24 );
 			if( syncPattern != 0x564342 ) {
 				throw new InvalidDataException( "Invalid codebook sync pattern: " + syncPattern );
 			}
 			
-			int dimensions = reader.ReadBits( 16 );
-			int entries = reader.ReadBits( 24 );
-			int ordered = reader.ReadBit();
+			dimensions = reader.ReadBits( 16 );
+			entries = reader.ReadBits( 24 );
 			codewordLengths = new byte[entries];
-			if( ordered == 0 ) {
+			
+			if( reader.ReadBit() == 0 ) { // orderered
 				int sparse = reader.ReadBit();
 				for( int i = 0; i < entries; i++ ) {
-					if( sparse == 0 || ( reader.ReadBit() == 1 ) ) {
-						codewordLengths[i] = (byte)( reader.ReadBits( 5 ) + 1 );
+					if( sparse == 0 || (reader.ReadBit() == 1) ) {
+						codewordLengths[i] = (byte)(reader.ReadBits( 5 ) + 1);
 					}
 				}
 			} else {

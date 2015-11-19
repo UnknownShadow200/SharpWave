@@ -124,12 +124,13 @@ namespace SharpWave.Codecs.Vorbis {
 						ch++;
 					}
 				}
+				
 				int residueNum = mapping.submapResidue[i];
 				residueArgs.ch = ch;
 				residueArgs.doNotDecode = doNotDecode;
 				residueConfigs[residueNum].ReadPerPacketData( this, bitReader, residueArgs );
 				ch = 0;
-				for( int j = 0; j < channels; j++ ) { // TODO: spec seems to suggest <=, look into
+				for( int j = 0; j < channels; j++ ) {
 					if( mapping.mux[j] == i ) {
 						// TODO: residue_vector[j] = decoded_residue_vector[ch];
 						ch++;
