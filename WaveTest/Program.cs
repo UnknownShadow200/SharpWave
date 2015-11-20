@@ -3,6 +3,7 @@ using SharpWave;
 using SharpWave.Codecs;
 using SharpWave.Codecs.Wave;
 using SharpWave.Codecs.Flac;
+using SharpWave.Codecs.Vorbis;
 using SharpWave.Containers;
 using SharpWave.Containers.Wave;
 using SharpWave.Containers.Flac;
@@ -16,11 +17,11 @@ namespace WaveTest {
 		public static void Main( string[] args ) {
 
 			using( var player = new OpenALOut() ) {
-				//using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
-				//	var container = new OggContainer( fs );
-				//	player.StreamData( container );
-				//}
-				System.Diagnostics.Debugger.Break();
+				using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
+					var container = new OggContainer( fs );
+					player.PlayStreaming( container );
+				}
+				//System.Diagnostics.Debugger.Break();
 				/*foreach( string file in Directory.GetFiles( "resources" ) ) {
 					try {
 					using( FileStream fs = File.OpenRead( file ) ) {

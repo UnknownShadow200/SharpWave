@@ -36,7 +36,7 @@ namespace SharpWave {
 				if( chunk == null || chunk.Data == null )
 					throw new InvalidOperationException( "chunk or chunk audio data is null." );
 				ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
-				AL.BufferData( bufferIDs[i], format, chunk.Data, chunk.Data.Length, chunk.Frequency );
+				AL.BufferData( bufferIDs[i], format, chunk.Data, chunk.Length, chunk.Frequency );
 				CheckError();
 			}
 			
@@ -57,7 +57,7 @@ namespace SharpWave {
 					if( enumerator.MoveNext() ) {
 						AudioChunk chunk = enumerator.Current;
 						ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
-						AL.BufferData( bufferId, format, chunk.Data, chunk.Data.Length, chunk.Frequency );
+						AL.BufferData( bufferId, format, chunk.Data, chunk.Length, chunk.Frequency );
 						CheckError();
 						AL.SourceQueueBuffers( source, 1, ref bufferId );
 						CheckError();

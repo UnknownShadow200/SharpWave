@@ -31,7 +31,7 @@ namespace SharpWave {
 			CheckError();			
 			
 			ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
-			AL.BufferData( bufferIDs[0], format, chunk.Data, chunk.Data.Length, chunk.Frequency );
+			AL.BufferData( bufferIDs[0], format, chunk.Data, chunk.Length, chunk.Frequency );
 			CheckError();
 			AL.SourceQueueBuffers( source, bufferIDs.Length, bufferIDs );
 			CheckError();

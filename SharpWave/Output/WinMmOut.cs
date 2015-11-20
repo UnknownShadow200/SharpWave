@@ -39,7 +39,7 @@ namespace SharpWave {
 			byte[] data = chunk.Data;
 			GCHandle bufferHandle = GCHandle.Alloc( data, GCHandleType.Pinned );
 			header.DataBuffer = bufferHandle.AddrOfPinnedObject();
-			header.BufferLength = data.Length;
+			header.BufferLength = chunk.Length;
 			header.Loops = 1;
 			
 			UserData userData = new UserData();

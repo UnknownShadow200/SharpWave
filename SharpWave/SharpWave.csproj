@@ -48,6 +48,24 @@
     <Compile Include="Codecs\FlacCodec.cs" />
     <Compile Include="Containers\FlacContainer.cs" />
     <Compile Include="Containers\WaveContainer.cs" />
+    <Compile Include="csvorbis\Block.cs" />
+    <Compile Include="csvorbis\CodeBook.cs" />
+    <Compile Include="csvorbis\Comment.cs" />
+    <Compile Include="csvorbis\csorbisException.cs" />
+    <Compile Include="csvorbis\DspState.cs" />
+    <Compile Include="csvorbis\FuncFloor.cs" />
+    <Compile Include="csvorbis\FuncMapping.cs" />
+    <Compile Include="csvorbis\FuncResidue.cs" />
+    <Compile Include="csvorbis\Info.cs" />
+    <Compile Include="csvorbis\Mdct.cs" />
+    <Compile Include="csvorbis\VorbisCodec.cs" />
+    <Compile Include="csvorbis\Ogg\Buffer.cs" />
+    <Compile Include="csvorbis\Ogg\Packet.cs" />
+    <Compile Include="csvorbis\Ogg\Page.cs" />
+    <Compile Include="csvorbis\Ogg\StreamState.cs" />
+    <Compile Include="csvorbis\Ogg\SyncState.cs" />
+    <Compile Include="csvorbis\StaticCodeBook.cs" />
+    <Compile Include="csvorbis\VUtils.cs" />
     <Compile Include="Logging\ConsoleLogger.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="OpenTK\AL.cs" />
@@ -79,7 +97,9 @@
     <Compile Include="Transformers\Transformer.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="csvorbis\Ogg" />
     <Folder Include="Logging" />
+    <Folder Include="csvorbis" />
     <Folder Include="OpenTK" />
     <Folder Include="Utils" />
     <Folder Include="Output" />

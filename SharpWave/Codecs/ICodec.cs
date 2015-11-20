@@ -16,5 +16,10 @@ namespace SharpWave.Codecs {
 		public int Channels;
 		public int BitsPerSample;
 		public byte[] Data;
+		public int BytesUsed; // can be 0
+		
+		public int Length {
+			get { return BytesUsed > 0 ? BytesUsed : Data.Length; }
+		}
 	}
 }
