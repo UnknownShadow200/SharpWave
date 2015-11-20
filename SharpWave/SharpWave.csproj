@@ -44,13 +44,10 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Codecs\Vorbis\Components\Codebook.cs" />
-    <Compile Include="Codecs\Vorbis\Components\Floor.cs" />
-    <Compile Include="Codecs\Vorbis\Components\IVorbisComponent.cs" />
-    <Compile Include="Codecs\Vorbis\Components\Mapping.cs" />
-    <Compile Include="Codecs\Vorbis\Components\Mode.cs" />
-    <Compile Include="Codecs\Vorbis\Components\Residue.cs" />
-    <Compile Include="Codecs\Vorbis\VorbisCodec.Setup.cs" />
+    <Compile Include="Codecs\FlacBitReader.cs" />
+    <Compile Include="Codecs\FlacCodec.cs" />
+    <Compile Include="Containers\FlacContainer.cs" />
+    <Compile Include="Containers\WaveContainer.cs" />
     <Compile Include="Logging\ConsoleLogger.cs" />
     <Compile Include="Logging\Logger.cs" />
     <Compile Include="OpenTK\AL.cs" />
@@ -62,61 +59,32 @@
     <Compile Include="OpenTK\AudioDeviceErrorChecker.cs" />
     <Compile Include="OpenTK\AudioException.cs" />
     <Compile Include="OpenTK\Vector3.cs" />
+    <Compile Include="Output\OpenALOut.cs" />
+    <Compile Include="Output\WinMmOut.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utils\BitReader.cs" />
     <Compile Include="Utils\BitUtils.cs" />
     <Compile Include="Utils\HuffmanTree.cs" />
     <Compile Include="Utils\PrimitiveReader.cs" />
     <Compile Include="Utils\Tuple.cs" />
-    <Compile Include="Output\AudioOutputAL.cs" />
-    <Compile Include="Output\AudioOutputDS.cs" />
-    <Compile Include="Output\AudioOutputWinMm.cs" />
+    <Compile Include="Output\OpenALOut.Stream.cs" />
+    <Compile Include="Output\WinMmOut.Stream.cs" />
     <Compile Include="Output\IAudioOutput.cs" />
-    <Compile Include="Codecs\AiffCodec.cs" />
-    <Compile Include="Codecs\AuCodec.cs" />
-    <Compile Include="Codecs\Flac\FlacBitReader.cs" />
-    <Compile Include="Codecs\Flac\FlacCodec.cs" />
     <Compile Include="Codecs\ICodec.cs" />
-    <Compile Include="Codecs\Mpeg\Common.cs" />
-    <Compile Include="Codecs\Mpeg\LayerDecoder.cs" />
-    <Compile Include="Codecs\Mpeg\LayerIDecoder.cs" />
-    <Compile Include="Codecs\Mpeg\LayerIIDecoder.cs" />
-    <Compile Include="Codecs\Mpeg\Mp3Codec.cs" />
     <Compile Include="Codecs\TransformerCodec.cs" />
-    <Compile Include="Codecs\Vorbis\VorbisCodec.cs" />
-    <Compile Include="Codecs\Vorbis\VorbisUtils.cs" />
-    <Compile Include="Containers\AuContainer.cs" />
-    <Compile Include="Containers\Flac\FlacContainer.cs" />
     <Compile Include="Containers\IMediaContainer.cs" />
-    <Compile Include="Containers\Mpeg\ID3v2Frame.cs" />
-    <Compile Include="Containers\Mpeg\ID3v2Tag.cs" />
-    <Compile Include="Containers\Mpeg\Mp3Container.cs" />
-    <Compile Include="Containers\Mpeg\MpegContainer.cs" />
-    <Compile Include="Containers\Ogg\OggContainer.cs" />
-    <Compile Include="Containers\Wave\AudioFormat.cs" />
-    <Compile Include="Containers\Wave\WaveContainer.cs" />
     <Compile Include="Transformers\ALawTransformer.cs" />
-    <Compile Include="Transformers\DialogicAdpcmTransformer.cs" />
     <Compile Include="Transformers\EndianTransformer.cs" />
-    <Compile Include="Transformers\ImaAdpcmTransformer.cs" />
     <Compile Include="Transformers\MuLawTransformer.cs" />
     <Compile Include="Transformers\Transformer.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Codecs\Vorbis\Components" />
     <Folder Include="Logging" />
     <Folder Include="OpenTK" />
     <Folder Include="Utils" />
     <Folder Include="Output" />
     <Folder Include="Codecs" />
-    <Folder Include="Codecs\Flac" />
-    <Folder Include="Codecs\Mpeg" />
-    <Folder Include="Codecs\Vorbis" />
     <Folder Include="Containers" />
-    <Folder Include="Containers\Flac" />
-    <Folder Include="Containers\Mpeg" />
-    <Folder Include="Containers\Ogg" />
-    <Folder Include="Containers\Wave" />
     <Folder Include="Transformers" />
   </ItemGroup>
   <ItemGroup>

@@ -106,15 +106,6 @@ namespace SharpWave.Containers.Wave {
 					}
 					break;
 					
-				case AudioFormat.IeeeFloat:
-					if( bitsPerSample == 32 ) {
-						this.bitsPerSample = 16;
-					} else if( bitsPerSample == 64 ) {
-						this.bitsPerSample = 16;
-					}
-					throw new NotSupportedException();
-					break;
-					
 				case AudioFormat.ALaw:
 					transformer = ALawTransformer.Instance;
 					this.bitsPerSample = 16;
@@ -125,38 +116,18 @@ namespace SharpWave.Containers.Wave {
 					this.bitsPerSample = 16;
 					break;
 					
-					// TODO: Properly test this transformer, but I can't seem to find any wave files that use this format.
-				case AudioFormat.DialogicOkiAdpcm:
-					transformer = DialogicAdpcmTransformer.Instance;
-					this.bitsPerSample = 16;
-					break;
-					
-					// TODO: Test this transformer too.
-				case AudioFormat.ImaAdpcm:
-					transformer = ImaAdpcmTransformer.Instance;
-					this.bitsPerSample = 16;
-					break;
-					
 				case AudioFormat.Extensible:
 					ushort validBitsPerSample = reader.ReadUInt16();
 					uint channelMask = reader.ReadUInt32();
 					Guid subFormat = reader.ReadGuid();
 					Metadata["extensible guid"] = subFormat.ToString();
 					if( subFormat == PcmGuid ) {
-					} else if( subFormat == IeeeFloatGuid ) {
-						throw new NotSupportedException( "Ieee float sub format not supported." );
-					} else if( subFormat == DrmGuid ) {
-						throw new NotSupportedException( "Drm sub format not supported." );
 					} else if( subFormat == AlawGuid ) {
 						transformer = ALawTransformer.Instance;
 						this.bitsPerSample = 16;
 					} else if( subFormat == MulawGuid ) {
 						transformer = MuLawTransformer.Instance;
 						this.bitsPerSample = 16;
-					} else if( subFormat == AdpcmGuid ) {
-						throw new NotSupportedException( "Adpcm sub format not supported." );
-					} else if( subFormat == MpegGuid ) {
-						throw new NotSupportedException( "Mpeg sub format not supported." );
 					} else {
 						throw new NotSupportedException( "Unsupported sub format: " + subFormat );
 					}
@@ -169,12 +140,8 @@ namespace SharpWave.Containers.Wave {
 		}
 
 		static readonly Guid PcmGuid = new Guid( "00000001-0000-0010-8000-00aa00389b71" );
-		static readonly Guid IeeeFloatGuid = new Guid( "00000003-0000-0010-8000-00aa00389b71" );
-		static readonly Guid DrmGuid = new Guid( "00000009-0000-0010-8000-00aa00389b71" );
 		static readonly Guid AlawGuid = new Guid( "00000006-0000-0010-8000-00aa00389b71" );
 		static readonly Guid MulawGuid = new Guid( "00000007-0000-0010-8000-00aa00389b71" );
-		static readonly Guid AdpcmGuid = new Guid( "00000002-0000-0010-8000-00aa00389b71" );
-		static readonly Guid MpegGuid = new Guid( "00000050-0000-0010-8000-00aa00389b71" );
 		
 		static RiffChunkHeader ReadChunkHeader( PrimitiveReader reader, bool reverseHeaders ) {
 			byte[] sig = reader.ReadBytes( 4 );
@@ -191,5 +158,12 @@ namespace SharpWave.Containers.Wave {
 			public string Signature;
 			public int DataSize;
 		}
+	}
+	
+	public enum AudioFormat : ushort {
+		Pcm = 0x0001,
+		ALaw = 0x0006,
+		MuLaw = 0x0007,	
+		Extensible = 0xFFFE,
 	}
 }

@@ -7,6 +7,8 @@ namespace SharpWave {
 	
 	public interface IAudioOutput : IDisposable {
 		
-		void StreamData( IMediaContainer container );
+		void PlayStreaming( IMediaContainer container );
+		
+		void PlayRaw( AudioChunk chunk );
 	}
 }

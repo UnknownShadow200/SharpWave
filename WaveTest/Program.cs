@@ -4,9 +4,7 @@ using SharpWave.Codecs;
 using SharpWave.Codecs.Wave;
 using SharpWave.Codecs.Flac;
 using SharpWave.Containers;
-using SharpWave.Containers.Mpeg;
 using SharpWave.Containers.Wave;
-using SharpWave.Containers.Ogg;
 using SharpWave.Containers.Flac;
 using System.IO;
 using SharpWave.Logging;
@@ -17,11 +15,11 @@ namespace WaveTest {
 		
 		public static void Main( string[] args ) {
 
-			using( var player = new AudioOutputAL() ) {
-				using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
-					var container = new OggContainer( fs );
-					player.StreamData( container );
-				}
+			using( var player = new OpenALOut() ) {
+				//using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
+				//	var container = new OggContainer( fs );
+				//	player.StreamData( container );
+				//}
 				System.Diagnostics.Debugger.Break();
 				/*foreach( string file in Directory.GetFiles( "resources" ) ) {
 					try {
@@ -36,18 +34,11 @@ namespace WaveTest {
 			}
 			
 			
-			using( var player = new AudioOutputAL() ) {
-				using( FileStream fs = File.OpenRead( "test3.mpeg1" ) ) {
-					var container = new MpegContainer( fs );
-					player.StreamData( container );
-				}
-				
+			using( var player = new OpenALOut() ) {				
 				foreach( string file in Directory.GetFiles( "waV" ) ) {
 					using( FileStream fs = File.OpenRead( file ) ) {
 						var container = new WaveContainer( fs );
-						using( var player2 = new AudioOutputAL() ) {
-							player2.StreamData( container );
-						}
+						player.PlayStreaming( container );
 					}
 				}
 				
