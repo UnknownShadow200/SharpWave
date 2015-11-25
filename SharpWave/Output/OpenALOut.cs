@@ -12,6 +12,7 @@ namespace SharpWave {
 		uint source = uint.MaxValue;
 		uint[] bufferIDs;
 		AudioContext context;
+		ALFormat format;
 		
 		public OpenALOut() {
 			context = new AudioContext();
@@ -19,8 +20,7 @@ namespace SharpWave {
 		
 		public void PlayRaw( AudioChunk chunk ) {
 			Initalise( chunk );
-			ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
-			AL.BufferData( bufferIDs[0], format, chunk.Data, chunk.Length, chunk.Frequency );
+			UpdateBuffer( bufferIDs[0], chunk );
 			CheckError();
 			AL.SourceQueueBuffers( source, bufferIDs.Length, bufferIDs );
 			CheckError();
@@ -37,6 +37,13 @@ namespace SharpWave {
 			}
 		}
 		
+		unsafe void UpdateBuffer( uint bufferId, AudioChunk chunk ) {
+			fixed( byte* src = chunk.Data ) {
+				byte* chunkPtr = src + chunk.BytesOffset;
+				AL.BufferData( bufferId, format, (IntPtr)chunkPtr, 
+				              chunk.Length, chunk.Frequency );
+			}
+		}
 		void CheckError() {
 			ALError error = AL.GetError();
 			if( error != ALError.NoError ) {
@@ -56,6 +63,8 @@ namespace SharpWave {
 		const int bufferSize = 4;
 		AudioChunk last;
 		void Initalise( AudioChunk first ) {
+			format = GetALFormat( first.Channels, first.BitsPerSample );
+			
 			// Don't need to recreate device if it's the same.
 			if( last != null && last.BitsPerSample == first.BitsPerSample &&
 			   last.Channels == first.Channels && last.Frequency == first.Frequency )

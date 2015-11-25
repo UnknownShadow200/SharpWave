@@ -26,7 +26,7 @@ namespace SharpWave {
 			if( OnGotMetadata != null )
 				OnGotMetadata();
 			
-			OutStream.Write( chunk.Data, 0, chunk.Length );
+			OutStream.Write( chunk.Data, chunk.BytesOffset, chunk.Length );
 		}
 		
 		public void PlayStreaming( IMediaContainer container ) {
@@ -39,7 +39,7 @@ namespace SharpWave {
 			
 			while( chunks.MoveNext() ) {
 				AudioChunk chunk = chunks.Current;
-				OutStream.Write( chunk.Data, 0, chunk.Length );
+				OutStream.Write( chunk.Data, chunk.BytesOffset, chunk.Length );
 			}
 		}
 		

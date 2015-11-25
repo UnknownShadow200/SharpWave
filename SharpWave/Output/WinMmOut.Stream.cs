@@ -18,17 +18,20 @@ namespace SharpWave {
 			IEnumerator<AudioChunk> chunks = 
 				codec.StreamData( container ).GetEnumerator();
 
+			int usedBuffers = 0;
 			for( int i = 0; i < bufferSize; i++ ) {
 				if( chunks.MoveNext() ) {
 					if( i == 0 )
 						Initalise( chunks.Current );
 					UpdateBuffer( i, chunks.Current );
+					usedBuffers++;
 				}
 			}
+			Console.WriteLine( "used: " + usedBuffers );
 			
 			bool ranOutOfChunks = false;
-			while( !AllDone( ranOutOfChunks ) ) {
-				for( int i = 0; i < headers.Length; i++ ) {
+			while( !AllDone( ranOutOfChunks, usedBuffers ) ) {
+				for( int i = 0; i < usedBuffers; i++ ) {
 					if( (headers[i].Flags & WaveHeaderFlags.Done) == 0 )
 						continue;
 					
@@ -42,10 +45,10 @@ namespace SharpWave {
 			}
 		}
 		
-		bool AllDone( bool ranOutOfChunks ) {
+		bool AllDone( bool ranOutOfChunks, int usedBuffers ) {
 			if( !ranOutOfChunks ) return false;
-			for( int i = 0; i < headers.Length; i++ ) {
-				if( (headers[i].Flags & WaveHeaderFlags.Done) != 0 )
+			for( int i = 0; i < usedBuffers; i++ ) {
+				if( (headers[i].Flags & WaveHeaderFlags.Done) == 0 )
 					return false;
 			}
 			return true;

@@ -203,10 +203,5 @@ namespace OpenTK.Audio.OpenAL {
 
 		[DllImport(AL.Lib, EntryPoint = "alBufferData", ExactSpelling = true, CallingConvention = AL.Style), SuppressUnmanagedCodeSecurity]
 		public static extern void BufferData(uint bid, ALFormat format, IntPtr buffer, int size, int freq);
-
-		public static void BufferData(uint bid, ALFormat format, byte[] buffer, int size, int freq) {
-			fixed( byte* ptr = buffer )
-				BufferData(bid, format, (IntPtr)ptr, size, freq); 
-		}
 	}
 }

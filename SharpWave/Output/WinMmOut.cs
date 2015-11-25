@@ -9,7 +9,7 @@ namespace SharpWave {
 	/// native WinMm library. Windows only. </summary>
 	public sealed partial class WinMmOut : IAudioOutput {
 		
-		IntPtr handle;
+		IntPtr devHandle;
 		readonly int waveHeaderSize;
 		public WinMmOut() {
 			waveHeaderSize = Marshal.SizeOf( default( WaveHeader ) );
@@ -56,7 +56,7 @@ namespace SharpWave {
 			format.AverageBytesPerSecond = first.Frequency * format.BlockAlign;
 			
 			WaveOpenFlags flags = WaveOpenFlags.CallbackNull;
-			uint result = Open( out handle, new UIntPtr( (uint)0xFFFF ), ref format, 
+			uint result = Open( out devHandle, new UIntPtr( (uint)0xFFFF ), ref format, 
 			                   IntPtr.Zero, UIntPtr.Zero, flags );
 			CheckError( result );
 		}
@@ -66,17 +66,19 @@ namespace SharpWave {
 			byte[] data = chunk.Data;
 			CheckBufferSize( index, chunk.Length );
 			IntPtr handle = dataHandles[index];			
-			fixed( byte* src = data )
-				MemUtils.memcpy( (IntPtr)src, handle, chunk.Length );
+			fixed( byte* src = data ) {
+				byte* chunkPtr = src + chunk.BytesOffset;
+				MemUtils.memcpy( (IntPtr)chunkPtr, handle, chunk.Length );
+			}
 			
 			header.DataBuffer = handle;
 			header.BufferLength = chunk.Length;
 			header.Loops = 1;
 			headers[index] = header;
 			
-			uint result = PrepareHeader( handle, ref headers[index], (uint)waveHeaderSize );
+			uint result = PrepareHeader( devHandle, ref headers[index], (uint)waveHeaderSize );
 			CheckError( result );
-			result = Write( handle, ref headers[index], (uint)waveHeaderSize );
+			result = Write( devHandle, ref headers[index], (uint)waveHeaderSize );
 			CheckError( result );
 		}
 		
@@ -86,12 +88,11 @@ namespace SharpWave {
 			IntPtr ptr = dataHandles[index];
 			if( ptr != IntPtr.Zero )
 				Marshal.FreeHGlobal( ptr );
-			ptr = Marshal.AllocHGlobal( chunkDataSize );
-			dataHandles[index] = ptr;
+			dataHandles[index] = Marshal.AllocHGlobal( chunkDataSize );
 		}
 		
 		void Free( ref WaveHeader header ) {
-			uint result = UnprepareHeader( handle, ref header, (uint)waveHeaderSize );
+			uint result = UnprepareHeader( devHandle, ref header, (uint)waveHeaderSize );
 			CheckError( result );
 		}
 		
@@ -104,16 +105,17 @@ namespace SharpWave {
 		}
 		
 		public void Dispose() {
+			Console.WriteLine( "dispose" );
 			DisposeDevice();
 			for( int i = 0; i < dataHandles.Length; i++ )
 				Marshal.FreeHGlobal( dataHandles[i] );
 		}
 		
 		void DisposeDevice() {
-			if( handle != IntPtr.Zero ) {
+			if( devHandle != IntPtr.Zero ) {
 				Console.WriteLine( "disposing device" );
-				Close( handle );
-				handle = IntPtr.Zero;
+				Close( devHandle );
+				devHandle = IntPtr.Zero;
 			}
 		}
 	}

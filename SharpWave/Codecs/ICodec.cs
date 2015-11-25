@@ -17,6 +17,7 @@ namespace SharpWave.Codecs {
 		public int BitsPerSample;
 		public byte[] Data;
 		public int BytesUsed; // can be 0
+		public int BytesOffset; // offset inside data to start playing at
 		
 		public int Length {
 			get { return BytesUsed > 0 ? BytesUsed : Data.Length; }

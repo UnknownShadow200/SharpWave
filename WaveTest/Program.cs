@@ -16,32 +16,21 @@ namespace WaveTest {
 		
 		public static void Main( string[] args ) {
 
-			using( var player = new OpenALOut() ) {
-				using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
-					//var container = new OggContainer( fs );
-					//player.PlayStreaming( container );
-					//System.Threading.Thread.Sleep( 10000 );
-				}
-				//System.Diagnostics.Debugger.Break();
-				/*foreach( string file in Directory.GetFiles( "resources" ) ) {
-					try {
+			using( var player = new WinMmOut() ) {
+				foreach( string file in Directory.GetFiles( "resources/sound3/dig" ) ) {
 					using( FileStream fs = File.OpenRead( file ) ) {
+						Console.WriteLine( "PLAYING " + file );
 						var container = new OggContainer( fs );
-						using( var player2 = new AudioOutputAL() ) {
-						player2.StreamData( container );
-						}
+						player.PlayStreaming( container );
 					}
-					} catch { }
-				}*/
+				}
 			}
 			
-			
-			using( var player = new WinMmOut() ) {
+			using( var player = new RawOut( File.Create( "sounds.bin" ), false ) ) {
 				foreach( string file in Directory.GetFiles( "resources" ) ) {
 					using( FileStream fs = File.OpenRead( file ) ) {
 						var container = new OggContainer( fs );
 						player.PlayStreaming( container );
-						//System.Threading.Thread.Sleep( 10000 );
 					}
 				}
 				

@@ -27,8 +27,7 @@ namespace SharpWave {
 				
 				if( i == 0 )
 					Initalise( chunk );
-				ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
-				AL.BufferData( bufferIDs[i], format, chunk.Data, chunk.Length, chunk.Frequency );
+				UpdateBuffer( bufferIDs[i], chunk );
 				CheckError();
 			}
 			
@@ -48,8 +47,7 @@ namespace SharpWave {
 					
 					if( enumerator.MoveNext() ) {
 						AudioChunk chunk = enumerator.Current;
-						ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
-						AL.BufferData( bufferId, format, chunk.Data, chunk.Length, chunk.Frequency );
+						UpdateBuffer( bufferIDs[0], chunk );
 						CheckError();
 						AL.SourceQueueBuffers( source, 1, ref bufferId );
 						CheckError();
