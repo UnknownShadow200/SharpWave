@@ -10,31 +10,21 @@ namespace SharpWave {
 	public unsafe sealed partial class OpenALOut : IAudioOutput {
 		
 		public void PlayStreaming( IMediaContainer container ) {
-			if( container == null ) throw new ArgumentNullException( "container" );
-			
+			if( container == null ) throw new ArgumentNullException( "container" );			
 			container.ReadMetadata();
 			ICodec codec = container.GetAudioCodec();
 			IEnumerable<AudioChunk> chunks = codec.StreamData( container );
-			
-			// A buffer size of 2 is not enough for some codecs.
-			const int bufferSize = 3;
-			bufferIDs = new uint[bufferSize];
-			fixed( uint* bufferPtr = bufferIDs )
-				AL.GenBuffers( bufferSize, bufferPtr );
-			CheckError();
-			
-			uint sourceU = 0;
-			AL.GenSources( 1, out sourceU );
-			source = sourceU;
-			CheckError();
 
 			// TODO: Handle the case where the file is less than 2 seconds long.
 			IEnumerator<AudioChunk> enumerator = chunks.GetEnumerator();
-			for( int i = 0; i < bufferIDs.Length; i++ ) {
+			for( int i = 0; i < bufferSize; i++ ) {
 				enumerator.MoveNext();
 				AudioChunk chunk = enumerator.Current;
 				if( chunk == null || chunk.Data == null )
 					throw new InvalidOperationException( "chunk or chunk audio data is null." );
+				
+				if( i == 0 )
+					Initalise( chunk );
 				ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
 				AL.BufferData( bufferIDs[i], format, chunk.Data, chunk.Length, chunk.Frequency );
 				CheckError();
@@ -78,11 +68,6 @@ namespace SharpWave {
 				}
 				Thread.Sleep( 1 );
 			}
-			
-			AL.DeleteBuffers( bufferIDs );
-			AL.DeleteSources( 1, ref source );
-			source = uint.MaxValue;
-			bufferIDs = null;
 		}
 	}
 }

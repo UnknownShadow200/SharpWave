@@ -83,6 +83,7 @@
     <Compile Include="Utils\BitReader.cs" />
     <Compile Include="Utils\BitUtils.cs" />
     <Compile Include="Utils\HuffmanTree.cs" />
+    <Compile Include="Utils\MemUtils.cs" />
     <Compile Include="Utils\PrimitiveReader.cs" />
     <Compile Include="Utils\Tuple.cs" />
     <Compile Include="Output\OpenALOut.Stream.cs" />

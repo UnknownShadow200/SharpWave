@@ -18,8 +18,9 @@ namespace WaveTest {
 
 			using( var player = new OpenALOut() ) {
 				using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
-					var container = new OggContainer( fs );
-					player.PlayStreaming( container );
+					//var container = new OggContainer( fs );
+					//player.PlayStreaming( container );
+					//System.Threading.Thread.Sleep( 10000 );
 				}
 				//System.Diagnostics.Debugger.Break();
 				/*foreach( string file in Directory.GetFiles( "resources" ) ) {
@@ -35,11 +36,12 @@ namespace WaveTest {
 			}
 			
 			
-			using( var player = new OpenALOut() ) {				
-				foreach( string file in Directory.GetFiles( "waV" ) ) {
+			using( var player = new WinMmOut() ) {
+				foreach( string file in Directory.GetFiles( "resources" ) ) {
 					using( FileStream fs = File.OpenRead( file ) ) {
-						var container = new WaveContainer( fs );
+						var container = new OggContainer( fs );
 						player.PlayStreaming( container );
+						//System.Threading.Thread.Sleep( 10000 );
 					}
 				}
 				

@@ -12,24 +12,11 @@ namespace SharpWave {
 		AudioContext context;
 		
 		public OpenALOut() {
-			try {
-				context = new AudioContext();
-			} catch( Exception e ) {
-				Console.WriteLine( e );
-			}
+			context = new AudioContext();
 		}
 		
 		public void PlayRaw( AudioChunk chunk ) {
-			bufferIDs = new uint[1];
-			fixed( uint* bufferPtr = bufferIDs )
-				AL.GenBuffers( 1, bufferPtr );
-			CheckError();
-			
-			uint sourceU = 0;
-			AL.GenSources( 1, out sourceU );
-			source = sourceU;
-			CheckError();			
-			
+			Initalise( chunk );
 			ALFormat format = GetALFormat( chunk.Channels, chunk.BitsPerSample );
 			AL.BufferData( bufferIDs[0], format, chunk.Data, chunk.Length, chunk.Frequency );
 			CheckError();
@@ -46,11 +33,6 @@ namespace SharpWave {
 					break;
 				Thread.Sleep( 1 );
 			}
-			
-			AL.DeleteBuffers( bufferIDs );
-			AL.DeleteSources( 1, ref source );
-			source = uint.MaxValue;
-			bufferIDs = null;
 		}
 		
 		void CheckError() {
@@ -66,6 +48,28 @@ namespace SharpWave {
 				AL.DeleteSources( 1, ref source );
 				AL.DeleteBuffers( bufferIDs );
 			}
+		}
+		
+		// A buffer size of 2 is not enough for some codecs.
+		const int bufferSize = 4;
+		AudioChunk last;
+		void Initalise( AudioChunk first ) {
+			// Don't need to recreate device if it's the same.
+			if( last != null && last.BitsPerSample == first.BitsPerSample &&
+			   last.Channels == first.Channels && last.Frequency == first.Frequency )
+				return;
+			
+			last = first;
+			Dispose();
+			uint sourceU = 0;
+			AL.GenSources( 1, out sourceU );
+			source = sourceU;
+			CheckError();
+			
+			bufferIDs = new uint[bufferSize];
+			fixed( uint* bufferPtr = bufferIDs )
+				AL.GenBuffers( bufferSize, bufferPtr );
+			CheckError();
 		}
 		
 		static ALFormat GetFormatFor( ALFormat baseFormat, int bitsPerSample ) {
