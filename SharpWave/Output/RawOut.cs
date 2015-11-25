@@ -5,6 +5,7 @@ using SharpWave.Codecs;
 using SharpWave.Containers;
 
 namespace SharpWave {
+	public delegate void Action();
 	
 	/// <summary> Outputs raw audio to the given stream in the constructor. </summary>
 	public unsafe sealed partial class RawOut : IAudioOutput {
