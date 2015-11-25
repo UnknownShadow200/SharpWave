@@ -12,12 +12,13 @@ namespace SharpWave {
 		public WinMmOut() {
 			waveHeaderSize = Marshal.SizeOf( default( WaveHeader ) );
 			headers = new WaveHeader[bufferSize];
-			dataSizes = new int[bufferSize];
 			dataHandles = new IntPtr[bufferSize];
+			dataSizes = new int[bufferSize];			
 		}
-		const int bufferSize = 3;
+		const int bufferSize = 4;
+		WaveHeader[] headers;
 		IntPtr[] dataHandles;
-		int[] dataSizes;
+		int[] dataSizes;		
 		
 		public void PlayRaw( AudioChunk chunk ) {
 			Initalise( chunk );
@@ -41,7 +42,7 @@ namespace SharpWave {
 			
 			Console.WriteLine( "init" );
 			last = first;
-			Dispose();
+			DisposeDevice();
 			WaveFormatEx format = new WaveFormatEx();
 			
 			format.Channels = (ushort)first.Channels;
@@ -101,13 +102,17 @@ namespace SharpWave {
 		}
 		
 		public void Dispose() {
+			DisposeDevice();
+			for( int i = 0; i < dataHandles.Length; i++ )
+				Marshal.FreeHGlobal( dataHandles[i] );
+		}
+		
+		void DisposeDevice() {
 			if( handle != IntPtr.Zero ) {
-				Console.WriteLine( "disposing" );
+				Console.WriteLine( "disposing device" );
 				Close( handle );
 				handle = IntPtr.Zero;
 			}
 		}
-		
-		WaveHeader[] headers;
 	}
 }
