@@ -8,13 +8,15 @@ using SharpWave.Containers;
 
 namespace SharpWave {
 	
+	/// <summary> Outputs audio to the default sound playback device using the 
+	/// native WinMm library. Windows only. </summary>
 	public sealed partial class WinMmOut : IAudioOutput {
 		
-		IEnumerator<AudioChunk> chunks;
 		public void PlayStreaming( IMediaContainer container ) {
 			container.ReadMetadata();
 			ICodec codec = container.GetAudioCodec();
-			chunks = codec.StreamData( container ).GetEnumerator();
+			IEnumerator<AudioChunk> chunks = 
+				codec.StreamData( container ).GetEnumerator();
 
 			for( int i = 0; i < bufferSize; i++ ) {
 				if( chunks.MoveNext() ) {

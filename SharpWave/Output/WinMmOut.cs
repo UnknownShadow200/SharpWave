@@ -5,6 +5,8 @@ using SharpWave.Codecs;
 
 namespace SharpWave {
 	
+	/// <summary> Outputs audio to the default sound playback device using the 
+	/// native WinMm library. Windows only. </summary>
 	public sealed partial class WinMmOut : IAudioOutput {
 		
 		IntPtr handle;

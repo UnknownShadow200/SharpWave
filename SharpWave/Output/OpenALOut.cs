@@ -6,6 +6,8 @@ using SharpWave.Codecs;
 
 namespace SharpWave {
 	
+	/// <summary> Outputs audio to the default sound playback device using the 
+	/// native OpenAL library. Cross platform. </summary>
 	public unsafe sealed partial class OpenALOut : IAudioOutput {
 		uint source = uint.MaxValue;
 		uint[] bufferIDs;
