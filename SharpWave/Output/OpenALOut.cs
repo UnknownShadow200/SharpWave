@@ -16,6 +16,7 @@ namespace SharpWave {
 		
 		public OpenALOut() {
 			context = new AudioContext();
+			AL.DistanceModel( ALDistanceModel.None );
 		}
 		
 		public void PlayRaw( AudioChunk chunk ) {

@@ -25,16 +25,12 @@ namespace OpenTK.Audio.OpenAL {
 		public static string GetErrorString(ALError param) {
 			return Marshal.PtrToStringAnsi(GetStringPrivate((ALGetString)param));
 		}
-
-		[DllImport(Lib, EntryPoint = "alGetInteger", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
-		public static extern int Get(ALGetInteger param);
 		
-		[DllImport(Lib, EntryPoint = "alGetFloat", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
-		public static extern float Get(ALGetFloat param);
+		[DllImport(Lib, EntryPoint = "alDistanceModel", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
+		public static extern void DistanceModel(ALDistanceModel param);
 
 		[DllImport(Lib, EntryPoint = "alGetError", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
-		public static extern ALError GetError();
-		
+		public static extern ALError GetError();		
 
 		[DllImport(Lib, EntryPoint = "alIsExtensionPresent", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		public static extern bool IsExtensionPresent([In] string extname);
@@ -46,11 +42,11 @@ namespace OpenTK.Audio.OpenAL {
 		public static extern int GetEnumValue([In] string ename);
 
 		[DllImport(Lib, EntryPoint = "alGenSources", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
-		private static extern void GenSourcesPrivate(int n, [Out] uint* sources);
+		public static extern void GenSources(int n, [Out] uint* sources);
 		
 		public static void GenSources(int n, out uint sources) {
 			fixed (uint* sources_ptr = &sources)
-				GenSourcesPrivate(n, sources_ptr);
+				GenSources(n, sources_ptr);
 		}
 
 		[DllImport(Lib, EntryPoint = "alDeleteSources", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
@@ -62,31 +58,14 @@ namespace OpenTK.Audio.OpenAL {
 		[DllImport(Lib, EntryPoint = "alIsSource", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern bool IsSource(uint sid);
 
-		[DllImport(Lib, EntryPoint = "alSourcef", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
-		public static extern void Source(uint sid, ALSourcef param, float value);
-
 		[DllImport(Lib, EntryPoint = "alSourcei", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void Source(uint sid, ALSourcei param, uint value);
-		
-		[DllImport(Lib, EntryPoint = "alGetSourcef", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
-		public static extern void GetSource(uint sid, ALSourcef param, [Out] out float value);
 
 		[DllImport(Lib, EntryPoint = "alGetSourcei", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void GetSource(uint sid, ALGetSourcei param, [Out] out int value);
 
-		public static void GetSource(uint sid, ALSourceb param, out bool value) {
-			int result;
-			GetSource(sid, (ALGetSourcei)param, out result);
-			value = result != 0;
-		}
-
 		[DllImport(Lib, EntryPoint = "alSourcePlayv"), SuppressUnmanagedCodeSecurity]
 		public static extern void SourcePlay(int ns, [In] uint* sids);
-		
-		public static void SourcePlay(int ns, uint[] sids) {
-			fixed (uint* ptr = sids)
-				SourcePlay(ns, ptr);
-		}
 
 		public static void SourcePlay(int ns, ref uint sids) {
 			fixed (uint* ptr = &sids)
@@ -95,11 +74,6 @@ namespace OpenTK.Audio.OpenAL {
 
 		[DllImport(Lib, EntryPoint = "alSourceStopv"), SuppressUnmanagedCodeSecurity]
 		public static extern void SourceStop(int ns, [In] uint* sids);
-		
-		public static void SourceStop(int ns, uint[] sids) {
-			fixed (uint* ptr = sids)
-				SourceStop(ns, ptr);
-		}
 
 		public static void SourceStop(int ns, ref uint sids) {
 			fixed (uint* ptr = &sids)
@@ -108,11 +82,6 @@ namespace OpenTK.Audio.OpenAL {
 
 		[DllImport(Lib, EntryPoint = "alSourceRewindv"), SuppressUnmanagedCodeSecurity]
 		public static extern void SourceRewind(int ns, [In] uint* sids);
-		
-		public static void SourceRewind(int ns, uint[] sids) {
-			fixed (uint* ptr = sids)
-				SourceRewind(ns, ptr);
-		}
 
 		public static void SourceRewind(int ns, ref uint sids) {
 			fixed (uint* ptr = &sids)
@@ -121,11 +90,6 @@ namespace OpenTK.Audio.OpenAL {
 
 		[DllImport(Lib, EntryPoint = "alSourcePausev"), SuppressUnmanagedCodeSecurity]
 		public static extern void SourcePause(int ns, [In] uint* sids);
-		
-		public static void SourcePause(int ns, uint[] sids) {
-			fixed (uint* ptr = sids)
-				SourcePause(ns, ptr);
-		}
 
 		public static void SourcePause(int ns, ref uint sids) {
 			fixed (uint* ptr = &sids)
@@ -180,9 +144,8 @@ namespace OpenTK.Audio.OpenAL {
 		public static extern void DeleteBuffers(int n, [In] ref uint buffers);
 
 		public static void DeleteBuffers(uint[] buffers) {
-			if (buffers == null) throw new ArgumentNullException();
-			if (buffers.Length == 0) throw new ArgumentOutOfRangeException();
-			DeleteBuffers(buffers.Length, ref buffers[0]);
+			fixed(uint* ptr = buffers)
+				DeleteBuffers(buffers.Length, ptr);
 		}
 
 		[DllImport(Lib, EntryPoint = "alIsBuffer", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]

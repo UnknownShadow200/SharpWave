@@ -34,8 +34,6 @@ namespace SharpWave {
 			CheckError();
 			AL.SourcePlay( source );
 			CheckError();
-			int distModel;
-			Console.WriteLine( (ALDistanceModel)AL.Get( ALGetInteger.DistanceModel ) );
 			
 			for( ; ; ) {
 				int buffersProcessed = 0;

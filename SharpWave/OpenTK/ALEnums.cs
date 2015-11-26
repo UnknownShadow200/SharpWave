@@ -21,53 +21,6 @@ namespace OpenTK.Audio.OpenAL
 		EfxMetersPerUnit = 0x20004,
 	}
 
-	///<summary>A list of valid 32-bit Float Source/GetSource parameters</summary>
-	public enum ALSourcef : int
-	{
-		///<summary>Source specific reference distance. Type: float Range: [0.0f - float.PositiveInfinity] At 0.0f, no distance attenuation occurs. Type: float Default: 1.0f.</summary>
-		ReferenceDistance = 0x1020,
-
-		///<summary>Indicate distance above which Sources are not attenuated using the inverse clamped distance model. Default: float.PositiveInfinity Type: float Range: [0.0f - float.PositiveInfinity]</summary>
-		MaxDistance = 0x1023,
-
-		///<summary>Source specific rolloff factor. Type: float Range: [0.0f - float.PositiveInfinity]</summary>
-		RolloffFactor = 0x1021,
-
-		///<summary>Specify the pitch to be applied, either at Source, or on mixer results, at Listener. Range: [0.5f - 2.0f] Default: 1.0f</summary>
-		Pitch = 0x1003,
-
-		///<summary>Indicate the gain (volume amplification) applied. Type: float. Range: [0.0f - ? ] A value of 1.0 means un-attenuated/unchanged. Each division by 2 equals an attenuation of -6dB. Each multiplicaton with 2 equals an amplification of +6dB. A value of 0.0f is meaningless with respect to a logarithmic scale; it is interpreted as zero volume - the channel is effectively disabled.</summary>
-		Gain = 0x100A,
-
-		///<summary>Indicate minimum Source attenuation. Type: float Range: [0.0f - 1.0f] (Logarthmic)</summary>
-		MinGain = 0x100D,
-
-		///<summary>Indicate maximum Source attenuation. Type: float Range: [0.0f - 1.0f] (Logarthmic)</summary>
-		MaxGain = 0x100E,
-
-		///<summary>Directional Source, inner cone angle, in degrees. Range: [0-360] Default: 360</summary>
-		ConeInnerAngle = 0x1001,
-
-		///<summary>Directional Source, outer cone angle, in degrees. Range: [0-360] Default: 360</summary>
-		ConeOuterAngle = 0x1002,
-
-		///<summary>Directional Source, outer cone gain. Default: 0.0f Range: [0.0f - 1.0] (Logarithmic)</summary>
-		ConeOuterGain = 0x1022,
-	}
-
-	///<summary>A list of valid Math.Vector3 Source/GetSource parameters</summary>
-	public enum ALSource3f : int
-	{
-		///<summary>Specify the current location in three dimensional space. OpenAL, like OpenGL, uses a right handed coordinate system, where in a frontal default view X (thumb) points right, Y points up (index finger), and Z points towards the viewer/camera (middle finger). To switch from a left handed coordinate system, flip the sign on the Z coordinate. Listener position is always in the world coordinate system.</summary>
-		Position = 0x1004,
-
-		///<summary>Specify the current velocity in three dimensional space.</summary>
-		Velocity = 0x1006,
-
-		///<summary>Specify the current direction vector.</summary>
-		Direction = 0x1005,
-	}
-
 	///<summary>A list of valid 8-bit boolean Source/GetSource parameters</summary>
 	public enum ALSourceb : int
 	{
@@ -87,9 +40,6 @@ namespace OpenTK.Audio.OpenAL
 
 		///<summary>Source type (Static, Streaming or undetermined). Use enum AlSourceType for comparison</summary>
 		SourceType = 0x1027,
-
-		///<summary>(EFX Extension) This Source property is used to apply filtering on the direct-path (dry signal) of a Source.</summary>
-		EfxDirectFilter = 0x20005,
 	}
 
 	///<summary>A list of valid Int32 GetSource parameters</summary>
@@ -199,49 +149,11 @@ namespace OpenTK.Audio.OpenAL
 		Extensions = 0xB004,
 	}
 
-	///<summary>A list of valid 32-bit Float AL.Get() parameters</summary>
-	public enum ALGetFloat : int
-	{
-		///<summary>Doppler scale. Default 1.0f</summary>
-		DopplerFactor = 0xC000,
-
-		///<summary>Tweaks speed of propagation. This functionality is deprecated.</summary>
-		DopplerVelocity = 0xC001,
-
-		///<summary>Speed of Sound in units per second. Default: 343.3f</summary>
-		SpeedOfSound = 0xC003,
-	}
-
-	///<summary>A list of valid Int32 AL.Get() parameters</summary>
-	public enum ALGetInteger : int
-	{
-		///<summary>See enum ALDistanceModel.</summary><see cref="ALDistanceModel"/>
-		DistanceModel = 0xD000,
-	}
-
 	/// <summary>Used by AL.DistanceModel(), the distance model can be retrieved by AL.Get() with ALGetInteger.DistanceModel</summary>
 	public enum ALDistanceModel : int
 	{
 		///<summary>Bypasses all distance attenuation calculation for all Sources.</summary>
 		None = 0,
-
-		///<summary>InverseDistance is equivalent to the IASIG I3DL2 model with the exception that ALSourcef.ReferenceDistance does not imply any clamping.</summary>
-		InverseDistance = 0xD001,
-
-		///<summary>InverseDistanceClamped is the IASIG I3DL2 model, with ALSourcef.ReferenceDistance indicating both the reference distance and the distance below which gain will be clamped.</summary>
-		InverseDistanceClamped = 0xD002,
-
-		///<summary>AL_EXT_LINEAR_DISTANCE extension.</summary>
-		LinearDistance = 0xD003,
-
-		///<summary>AL_EXT_LINEAR_DISTANCE extension.</summary>
-		LinearDistanceClamped = 0xD004,
-
-		///<summary>AL_EXT_EXPONENT_DISTANCE extension.</summary>
-		ExponentDistance = 0xD005,
-
-		///<summary>AL_EXT_EXPONENT_DISTANCE extension.</summary>
-		ExponentDistanceClamped = 0xD006,
 	}
 
 }
