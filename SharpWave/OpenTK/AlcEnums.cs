@@ -25,12 +25,6 @@ namespace OpenTK.Audio.OpenAL
 		///<summary>Followed by AlBoolean.True, or AlBoolean.False</summary>
 		Sync = 0x1009,
 
-		///<summary>Followed by System.Int32 Num of requested Mono (3D) Sources</summary>
-		MonoSources = 0x1010,
-
-		///<summary>Followed by System.Int32 Num of requested Stereo Sources</summary>
-		StereoSources = 0x1011,
-
 		/// <summary>(EFX Extension) This Context property can be passed to OpenAL during Context creation (alcCreateContext) to request a maximum number of Auxiliary Sends desired on each Source. It is not guaranteed that the desired number of sends will be available, so an application should query this property after creating the context using alcGetIntergerv. Default: 2</summary>
 		EfxMaxAuxiliarySends = 0x20003,
 	}
@@ -70,16 +64,10 @@ namespace OpenTK.Audio.OpenAL
 		///<summary>A list of available context extensions separated by spaces.</summary>
 		Extensions = 0x1006,
 
-		///<summary>The name of the default capture device</summary>
-		CaptureDefaultDeviceSpecifier = 0x311, // ALC_EXT_CAPTURE extension.
-
 		/// <summary>a list of the default devices.</summary>
 		DefaultAllDevicesSpecifier = 0x1012,
 
 		// duplicates from AlcGetStringList:
-
-		///<summary>Will only return the first Device, not a list. Use AlcGetStringList.CaptureDeviceSpecifier. ALC_EXT_CAPTURE_EXT </summary>
-		CaptureDeviceSpecifier = 0x310,
 
 		///<summary>Will only return the first Device, not a list. Use AlcGetStringList.DeviceSpecifier</summary>
 		DeviceSpecifier = 0x1005,

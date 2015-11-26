@@ -7,34 +7,35 @@ using SharpWave.Containers;
 
 namespace SharpWave {
 	
-	/// <summary> Outputs audio to the default sound playback device using the 
+	/// <summary> Outputs audio to the default sound playback device using the
 	/// native OpenAL library. Cross platform. </summary>
 	public unsafe sealed partial class OpenALOut : IAudioOutput {
 		
 		public void PlayStreaming( IMediaContainer container ) {
-			if( container == null ) throw new ArgumentNullException( "container" );			
+			if( container == null ) throw new ArgumentNullException( "container" );
 			container.ReadMetadata();
 			ICodec codec = container.GetAudioCodec();
-			IEnumerable<AudioChunk> chunks = codec.StreamData( container );
-
-			// TODO: Handle the case where the file is less than 2 seconds long.
-			IEnumerator<AudioChunk> enumerator = chunks.GetEnumerator();
+			IEnumerator<AudioChunk> chunks =
+				codec.StreamData( container ).GetEnumerator();
+			
+			int usedCount = 0;
 			for( int i = 0; i < bufferSize; i++ ) {
-				enumerator.MoveNext();
-				AudioChunk chunk = enumerator.Current;
-				if( chunk == null || chunk.Data == null )
-					throw new InvalidOperationException( "chunk or chunk audio data is null." );
+				if( !chunks.MoveNext() ) break;
 				
+				AudioChunk chunk = chunks.Current;	
 				if( i == 0 )
 					Initalise( chunk );
 				UpdateBuffer( bufferIDs[i], chunk );
 				CheckError();
+				usedCount++;
 			}
 			
-			AL.SourceQueueBuffers( source, bufferIDs.Length, bufferIDs );
+			AL.SourceQueueBuffers( source, usedCount, bufferIDs );
 			CheckError();
 			AL.SourcePlay( source );
 			CheckError();
+			int distModel;
+			Console.WriteLine( (ALDistanceModel)AL.Get( ALGetInteger.DistanceModel ) );
 			
 			for( ; ; ) {
 				int buffersProcessed = 0;
@@ -44,28 +45,34 @@ namespace SharpWave {
 				if( buffersProcessed > 0 ) {
 					uint bufferId = 0;
 					AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+					if( !chunks.MoveNext() ) break;
 					
-					if( enumerator.MoveNext() ) {
-						AudioChunk chunk = enumerator.Current;
-						UpdateBuffer( bufferIDs[0], chunk );
-						CheckError();
-						AL.SourceQueueBuffers( source, 1, ref bufferId );
-						CheckError();
-					} else {
-						break;
-					}
+					AudioChunk chunk = chunks.Current;
+					UpdateBuffer( bufferId, chunk );
+					CheckError();
+					AL.SourceQueueBuffers( source, 1, ref bufferId );
+					CheckError();
 				}
 				Thread.Sleep( 1 );
 			}
 			Console.WriteLine( "Ran out of chunks!" );
 			
-			int state;
-			// Query the source to find out when the last buffer stops playing.
-			for( ; ; ) {
-				AL.GetSource( source, ALGetSourcei.SourceState, out state );
-				if( (ALSourceState)state != ALSourceState.Playing ) {
-					break;
+			while( true ) {
+				int buffersProcessed = 0;
+				AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
+				CheckError();
+				
+				if( buffersProcessed > 0 ) {
+					for( int i = 0; i < buffersProcessed; i++ ) {
+						uint bufferId = 0;
+						AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+					}
 				}
+				
+				int state;
+				AL.GetSource( source, ALGetSourcei.SourceState, out state );
+				if( (ALSourceState)state != ALSourceState.Playing )
+					break;
 				Thread.Sleep( 1 );
 			}
 		}

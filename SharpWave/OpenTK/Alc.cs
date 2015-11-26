@@ -17,7 +17,7 @@ namespace OpenTK.Audio.OpenAL {
 		private const string Lib = AL.Lib;
 		private const CallingConvention Style = CallingConvention.Cdecl;
 
-		[DllImport(Alc.Lib, EntryPoint = "alcCreateContext", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcCreateContext", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public unsafe static extern IntPtr CreateContext([In] IntPtr device, [In] int* attrlist);
 		
 		public unsafe static IntPtr CreateContext(IntPtr device, int[] attriblist) {
@@ -25,43 +25,43 @@ namespace OpenTK.Audio.OpenAL {
 				return CreateContext(device, attriblist_ptr);
 		}
 
-		[DllImport(Alc.Lib, EntryPoint = "alcMakeContextCurrent", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcMakeContextCurrent", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern bool MakeContextCurrent(IntPtr context);
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcProcessContext", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcProcessContext", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void ProcessContext(IntPtr context);
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcSuspendContext", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcSuspendContext", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void SuspendContext(IntPtr context);
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcDestroyContext", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcDestroyContext", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void DestroyContext(IntPtr context);
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcGetCurrentContext", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcGetCurrentContext", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr GetCurrentContext();
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcGetContextsDevice", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcGetContextsDevice", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr GetContextsDevice(IntPtr context);
 
-		[DllImport(Alc.Lib, EntryPoint = "alcOpenDevice", ExactSpelling = true, CallingConvention = Alc.Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcOpenDevice", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr OpenDevice([In] string devicename);
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcCloseDevice", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcCloseDevice", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern bool CloseDevice([In] IntPtr device);
 
-		[DllImport(Alc.Lib, EntryPoint = "alcGetError", ExactSpelling = true, CallingConvention = Alc.Style), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcGetError", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern AlcError GetError([In] IntPtr device);
 
-		[DllImport(Alc.Lib, EntryPoint = "alcIsExtensionPresent", ExactSpelling = true, CallingConvention = Alc.Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcIsExtensionPresent", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		public static extern bool IsExtensionPresent([In] IntPtr device, [In] string extname);
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcGetProcAddress", ExactSpelling = true, CallingConvention = Alc.Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcGetProcAddress", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		public static extern IntPtr GetProcAddress([In] IntPtr device, [In] string funcname);
 		
-		[DllImport(Alc.Lib, EntryPoint = "alcGetEnumValue", ExactSpelling = true, CallingConvention = Alc.Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcGetEnumValue", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		public static extern int GetEnumValue([In] IntPtr device, [In] string enumname);
 
-		[DllImport(Alc.Lib, EntryPoint = "alcGetString", ExactSpelling = true, CallingConvention = Alc.Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcGetString", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		private static extern IntPtr GetStringPrivate([In] IntPtr device, AlcGetString param);
 		
 		public static string GetString(IntPtr device, AlcGetString param) {
@@ -90,7 +90,7 @@ namespace OpenTK.Audio.OpenAL {
 			return result;
 		}
 
-		[DllImport(Alc.Lib, EntryPoint = "alcGetIntegerv", ExactSpelling = true, CallingConvention = Alc.Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
+		[DllImport(Lib, EntryPoint = "alcGetIntegerv", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		public unsafe static extern void GetInteger(IntPtr device, AlcGetInteger param, int size, int* data);
 		
 		public unsafe static void GetInteger(IntPtr device, AlcGetInteger param, int size, out int data) {
