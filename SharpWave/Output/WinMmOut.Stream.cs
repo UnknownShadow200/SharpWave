@@ -19,7 +19,7 @@ namespace SharpWave {
 				codec.StreamData( container ).GetEnumerator();
 
 			int usedBuffers = 0;
-			for( int i = 0; i < bufferSize; i++ ) {
+			for( int i = 0; i < headers.Length; i++ ) {
 				if( chunks.MoveNext() ) {
 					if( i == 0 )
 						Initalise( chunks.Current );

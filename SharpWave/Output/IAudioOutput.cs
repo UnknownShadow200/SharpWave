@@ -6,6 +6,10 @@ namespace SharpWave {
 	
 	public interface IAudioOutput : IDisposable {
 		
+		void Create( int numBuffers );
+		
+		void Create( int numBuffers, IAudioOutput shared );
+		
 		/// <summary> Progressively streams and plays data from the given container. </summary>
 		void PlayStreaming( IMediaContainer container );
 		

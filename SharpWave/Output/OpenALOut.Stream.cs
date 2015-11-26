@@ -19,7 +19,7 @@ namespace SharpWave {
 				codec.StreamData( container ).GetEnumerator();
 			
 			int usedCount = 0;
-			for( int i = 0; i < bufferSize; i++ ) {
+			for( int i = 0; i < bufferIDs.Length; i++ ) {
 				if( !chunks.MoveNext() ) break;
 				
 				AudioChunk chunk = chunks.Current;	

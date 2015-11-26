@@ -20,6 +20,10 @@ namespace SharpWave {
 			LeaveOpen = leaveOpen;
 		}
 		
+		public void Create( int numBuffers ) { }
+		
+		public void Create( int numBuffers, IAudioOutput share ) { }
+		
 		public void PlayRaw( AudioChunk chunk ) {
 			Channels = chunk.Channels;
 			BitsPerSample = chunk.BitsPerSample;
@@ -35,9 +39,9 @@ namespace SharpWave {
 			ICodec codec = container.GetAudioCodec();
 			IEnumerator<AudioChunk> chunks = 
 				codec.StreamData( container ).GetEnumerator();
-			if( !chunks.MoveNext() ) return;
-			PlayRaw( chunks.Current );	
 			
+			if( !chunks.MoveNext() ) return;
+			PlayRaw( chunks.Current );				
 			while( chunks.MoveNext() ) {
 				AudioChunk chunk = chunks.Current;
 				OutStream.Write( chunk.Data, chunk.BytesOffset, chunk.Length );

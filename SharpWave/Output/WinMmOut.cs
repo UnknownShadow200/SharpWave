@@ -13,14 +13,21 @@ namespace SharpWave {
 		readonly int waveHeaderSize;
 		public WinMmOut() {
 			waveHeaderSize = Marshal.SizeOf( default( WaveHeader ) );
-			headers = new WaveHeader[bufferSize];
-			dataHandles = new IntPtr[bufferSize];
-			dataSizes = new int[bufferSize];			
+						
 		}
-		const int bufferSize = 4;
 		WaveHeader[] headers;
 		IntPtr[] dataHandles;
-		int[] dataSizes;		
+		int[] dataSizes;
+
+		public void Create( int numBuffers ) {
+			headers = new WaveHeader[numBuffers];
+			dataHandles = new IntPtr[numBuffers];
+			dataSizes = new int[numBuffers];
+		}
+		
+		public void Create( int numBuffers, IAudioOutput share ) {
+			Create( numBuffers );
+		}
 		
 		public void PlayRaw( AudioChunk chunk ) {
 			Initalise( chunk );

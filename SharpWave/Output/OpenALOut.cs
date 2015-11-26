@@ -11,12 +11,24 @@ namespace SharpWave {
 	public unsafe sealed partial class OpenALOut : IAudioOutput {
 		uint source = uint.MaxValue;
 		uint[] bufferIDs;
-		AudioContext context;
+		AudioContext context, shareContext;
 		ALFormat format;
 		
-		public OpenALOut() {
-			context = new AudioContext();
+		public void Create( int numBuffers ) {			
+			Create( numBuffers, null );
+		}
+		
+		public void Create( int numBuffers, IAudioOutput share ) {
 			AL.DistanceModel( ALDistanceModel.None );
+			bufferIDs = new uint[numBuffers];
+			OpenALOut alOut = share as OpenALOut;
+			
+			if( alOut == null ) {
+				context = new AudioContext();
+			} else {
+				context = alOut.context;
+				shareContext = context;
+			}
 		}
 		
 		public void PlayRaw( AudioChunk chunk ) {
@@ -62,10 +74,10 @@ namespace SharpWave {
 				AL.DeleteBuffers( bufferIDs );
 				CheckError();
 			}
+			if( shareContext != null )
+				context.Dispose();
 		}
 		
-		// A buffer size of 2 is not enough for some codecs.
-		const int bufferSize = 4;
 		AudioChunk last;
 		void Initalise( AudioChunk first ) {
 			format = GetALFormat( first.Channels, first.BitsPerSample );
@@ -82,9 +94,8 @@ namespace SharpWave {
 			source = sourceU;
 			CheckError();
 			
-			bufferIDs = new uint[bufferSize];
 			fixed( uint* bufferPtr = bufferIDs )
-				AL.GenBuffers( bufferSize, bufferPtr );
+				AL.GenBuffers( bufferIDs.Length, bufferPtr );
 			CheckError();
 		}
 		

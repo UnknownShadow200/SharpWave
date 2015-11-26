@@ -12,6 +12,7 @@ namespace WaveTest {
 		public static void Main( string[] args ) {
 
 			using( var player = new OpenALOut() ) {
+				player.Create( 4 );
 				foreach( string file in Directory.GetFiles( "resources/sound3/dig" ) ) {
 					using( FileStream fs = File.OpenRead( file ) ) {
 						Console.WriteLine( "PLAYING " + file );
