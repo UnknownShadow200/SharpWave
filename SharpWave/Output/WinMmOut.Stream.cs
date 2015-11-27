@@ -30,13 +30,13 @@ namespace SharpWave {
 			Console.WriteLine( "used: " + usedBuffers );
 			
 			bool ranOutOfChunks = false;
-			while( !pendingStop && !AllDone( ranOutOfChunks, usedBuffers ) ) {
+			while( !AllDone( ranOutOfChunks, usedBuffers ) ) {
 				for( int i = 0; i < usedBuffers; i++ ) {
 					if( (headers[i].Flags & WaveHeaderFlags.Done) == 0 )
 						continue;
 					
 					Free( ref headers[i] );
-					if( !chunks.MoveNext() )
+					if( pendingStop || !chunks.MoveNext() )
 						ranOutOfChunks = true;
 					else
 						UpdateBuffer( i, chunks.Current );

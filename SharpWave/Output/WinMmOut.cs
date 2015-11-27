@@ -33,7 +33,7 @@ namespace SharpWave {
 			Initalise( chunk );
 			UpdateBuffer( 0, chunk );
 			
-			while( !pendingStop ) {
+			while( true ) {
 				if( (headers[0].Flags & WaveHeaderFlags.Done) != 0 ) {
 					Free( ref headers[0] );
 					break;
