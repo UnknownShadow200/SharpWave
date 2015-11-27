@@ -42,8 +42,7 @@ namespace SharpWave {
 			CheckError();
 			
 			int state;
-			// Query the source to find out when the last buffer stops playing.
-			for( ; ; ) {
+			while( !pendingStop ) {
 				AL.GetSource( source, ALGetSourcei.SourceState, out state );
 				if( (ALSourceState)state != ALSourceState.Playing )
 					break;
@@ -66,6 +65,11 @@ namespace SharpWave {
 				Console.WriteLine( "OpenAL error:" + error );
 				throw new Exception();
 			}
+		}
+		
+		bool pendingStop;
+		public void Stop() {
+			pendingStop = true;
 		}
 		
 		public void Dispose() {

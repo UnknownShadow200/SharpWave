@@ -33,13 +33,19 @@ namespace SharpWave {
 			Initalise( chunk );
 			UpdateBuffer( 0, chunk );
 			
-			while( true ) {
+			while( !pendingStop ) {
 				if( (headers[0].Flags & WaveHeaderFlags.Done) != 0 ) {
 					Free( ref headers[0] );
 					break;
 				}
 				Thread.Sleep( 1 );
 			}
+		}
+		
+		
+		bool pendingStop;
+		public void Stop() {
+			pendingStop = true;
 		}
 		
 		AudioChunk last;

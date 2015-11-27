@@ -10,6 +10,8 @@ namespace SharpWave {
 		
 		void Create( int numBuffers, IAudioOutput shared );
 		
+		void Stop();
+		
 		/// <summary> Progressively streams and plays data from the given container. </summary>
 		void PlayStreaming( IMediaContainer container );
 		

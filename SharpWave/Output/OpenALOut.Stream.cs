@@ -35,7 +35,7 @@ namespace SharpWave {
 			AL.SourcePlay( source );
 			CheckError();
 			
-			for( ; ; ) {
+			while( !pendingStop ) {
 				int buffersProcessed = 0;
 				AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
 				CheckError();
@@ -55,7 +55,7 @@ namespace SharpWave {
 			}
 			Console.WriteLine( "Ran out of chunks!" );
 			
-			while( true ) {
+			while( !pendingStop ) {
 				int buffersProcessed = 0;
 				AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
 				CheckError();

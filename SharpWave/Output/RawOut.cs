@@ -24,6 +24,8 @@ namespace SharpWave {
 		
 		public void Create( int numBuffers, IAudioOutput share ) { }
 		
+		public void Stop() { }
+		
 		public void PlayRaw( AudioChunk chunk ) {
 			Channels = chunk.Channels;
 			BitsPerSample = chunk.BitsPerSample;

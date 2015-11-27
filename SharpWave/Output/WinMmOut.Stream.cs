@@ -30,7 +30,7 @@ namespace SharpWave {
 			Console.WriteLine( "used: " + usedBuffers );
 			
 			bool ranOutOfChunks = false;
-			while( !AllDone( ranOutOfChunks, usedBuffers ) ) {
+			while( !pendingStop && !AllDone( ranOutOfChunks, usedBuffers ) ) {
 				for( int i = 0; i < usedBuffers; i++ ) {
 					if( (headers[i].Flags & WaveHeaderFlags.Done) == 0 )
 						continue;
