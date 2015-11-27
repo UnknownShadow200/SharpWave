@@ -12,14 +12,14 @@ namespace SharpWave {
 	/// native WinMm library. Windows only. </summary>
 	public sealed partial class WinMmOut : IAudioOutput {
 		
-		public void PlayStreaming( IMediaContainer container ) {
+		public unsafe void PlayStreaming( IMediaContainer container ) {
 			container.ReadMetadata();
 			ICodec codec = container.GetAudioCodec();
 			IEnumerator<AudioChunk> chunks = 
 				codec.StreamData( container ).GetEnumerator();
 
 			int usedBuffers = 0;
-			for( int i = 0; i < headers.Length; i++ ) {
+			for( int i = 0; i < dataHandles.Length; i++ ) {
 				if( chunks.MoveNext() ) {
 					if( i == 0 )
 						Initalise( chunks.Current );
@@ -32,10 +32,12 @@ namespace SharpWave {
 			bool ranOutOfChunks = false;
 			while( !AllDone( ranOutOfChunks, usedBuffers ) ) {
 				for( int i = 0; i < usedBuffers; i++ ) {
-					if( (headers[i].Flags & WaveHeaderFlags.Done) == 0 )
+					IntPtr address = (IntPtr)((byte*)headers + i * waveHeaderSize );
+					WaveHeader header = *((WaveHeader*)address);
+					if( (header.Flags & WaveHeaderFlags.Done) == 0 )
 						continue;
 					
-					Free( ref headers[i] );
+					Free( i );
 					if( pendingStop || !chunks.MoveNext() )
 						ranOutOfChunks = true;
 					else
@@ -45,10 +47,12 @@ namespace SharpWave {
 			}
 		}
 		
-		bool AllDone( bool ranOutOfChunks, int usedBuffers ) {
+		unsafe bool AllDone( bool ranOutOfChunks, int usedBuffers ) {
 			if( !ranOutOfChunks ) return false;
 			for( int i = 0; i < usedBuffers; i++ ) {
-				if( (headers[i].Flags & WaveHeaderFlags.Done) == 0 )
+				IntPtr address = (IntPtr)((byte*)headers + i * waveHeaderSize );
+				WaveHeader header = *((WaveHeader*)address);
+				if( (header.Flags & WaveHeaderFlags.Done) == 0 )
 					return false;
 			}
 			return true;
@@ -65,13 +69,13 @@ namespace SharpWave {
 		static extern uint Close( IntPtr handle );
 		
 		[DllImport( "winmm.dll", EntryPoint = "waveOutPrepareHeader", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint PrepareHeader( IntPtr handle, ref WaveHeader header, uint headerByteSize );
+		static extern uint PrepareHeader( IntPtr handle, IntPtr header, uint headerByteSize );
 		
 		[DllImport( "winmm.dll", EntryPoint = "waveOutUnprepareHeader", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint UnprepareHeader( IntPtr handle, ref WaveHeader header, uint headerByteSize );
+		static extern uint UnprepareHeader( IntPtr handle, IntPtr header, uint headerByteSize );
 		
 		[DllImport( "winmm.dll", EntryPoint = "waveOutWrite", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint Write( IntPtr handle, ref WaveHeader header, uint headerByteSize );
+		static extern uint Write( IntPtr handle, IntPtr header, uint headerByteSize );
 		
 		static string GetErrorDescription( uint error ) {
 			StringBuilder message = new StringBuilder( 512 );

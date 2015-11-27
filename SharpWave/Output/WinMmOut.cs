@@ -15,12 +15,12 @@ namespace SharpWave {
 			waveHeaderSize = Marshal.SizeOf( default( WaveHeader ) );
 						
 		}
-		WaveHeader[] headers;
+		IntPtr headers;
 		IntPtr[] dataHandles;
 		int[] dataSizes;
 
 		public void Create( int numBuffers ) {
-			headers = new WaveHeader[numBuffers];
+			headers = Marshal.AllocHGlobal( waveHeaderSize * numBuffers );
 			dataHandles = new IntPtr[numBuffers];
 			dataSizes = new int[numBuffers];
 		}
@@ -29,13 +29,14 @@ namespace SharpWave {
 			Create( numBuffers );
 		}
 		
-		public void PlayRaw( AudioChunk chunk ) {
+		public unsafe void PlayRaw( AudioChunk chunk ) {
 			Initalise( chunk );
 			UpdateBuffer( 0, chunk );
 			
 			while( true ) {
-				if( (headers[0].Flags & WaveHeaderFlags.Done) != 0 ) {
-					Free( ref headers[0] );
+				WaveHeader header = *((WaveHeader*)headers);
+				if( (header.Flags & WaveHeaderFlags.Done) != 0 ) {
+					Free( 0 );
 					break;
 				}
 				Thread.Sleep( 1 );
@@ -87,11 +88,12 @@ namespace SharpWave {
 			header.DataBuffer = handle;
 			header.BufferLength = chunk.Length;
 			header.Loops = 1;
-			headers[index] = header;
+			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
+			*((WaveHeader*)address) = header;
 			
-			uint result = PrepareHeader( devHandle, ref headers[index], (uint)waveHeaderSize );
+			uint result = PrepareHeader( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "PrepareHeader" );
-			result = Write( devHandle, ref headers[index], (uint)waveHeaderSize );
+			result = Write( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "Write" );
 		}
 		
@@ -104,8 +106,9 @@ namespace SharpWave {
 			dataHandles[index] = Marshal.AllocHGlobal( chunkDataSize );
 		}
 		
-		void Free( ref WaveHeader header ) {
-			uint result = UnprepareHeader( devHandle, ref header, (uint)waveHeaderSize );
+		unsafe void Free( int index ) {
+			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
+			uint result = UnprepareHeader( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "UnprepareHeader" );
 		}
 		
