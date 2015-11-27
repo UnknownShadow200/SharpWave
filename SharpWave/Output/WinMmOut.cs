@@ -87,12 +87,12 @@ namespace SharpWave {
 			header.DataBuffer = handle;
 			header.BufferLength = chunk.Length;
 			header.Loops = 1;
-			
-			uint result = PrepareHeader( devHandle, ref header, (uint)waveHeaderSize );
-			CheckError( result, "PrepareHeader" );
-			result = Write( devHandle, ref header, (uint)waveHeaderSize );
-			CheckError( result, "Write" );
 			headers[index] = header;
+			
+			uint result = PrepareHeader( devHandle, ref headers[index], (uint)waveHeaderSize );
+			CheckError( result, "PrepareHeader" );
+			result = Write( devHandle, ref headers[index], (uint)waveHeaderSize );
+			CheckError( result, "Write" );
 		}
 		
 		void CheckBufferSize( int index, int chunkDataSize ) {		
