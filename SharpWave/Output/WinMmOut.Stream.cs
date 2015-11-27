@@ -101,7 +101,7 @@ namespace SharpWave {
 			public WaveHeaderFlags Flags;
 			public int Loops;
 			public IntPtr Next;
-			public int Reserved;
+			public IntPtr Reserved;
 		}
 		
 		public enum WaveFormatTag : ushort {

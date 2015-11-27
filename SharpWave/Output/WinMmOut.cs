@@ -69,9 +69,9 @@ namespace SharpWave {
 			format.AverageBytesPerSecond = first.Frequency * format.BlockAlign;
 			
 			WaveOpenFlags flags = WaveOpenFlags.CallbackNull;
-			uint result = Open( out devHandle, new UIntPtr( (uint)0xFFFF ), ref format, 
+			uint result = Open( out devHandle, new UIntPtr( 0xFFFF ), ref format, 
 			                   IntPtr.Zero, UIntPtr.Zero, flags );
-			CheckError( result );
+			CheckError( result, "Open" );
 		}
 		
 		unsafe void UpdateBuffer( int index, AudioChunk chunk ) {
@@ -87,12 +87,12 @@ namespace SharpWave {
 			header.DataBuffer = handle;
 			header.BufferLength = chunk.Length;
 			header.Loops = 1;
-			headers[index] = header;
 			
-			uint result = PrepareHeader( devHandle, ref headers[index], (uint)waveHeaderSize );
-			CheckError( result );
-			result = Write( devHandle, ref headers[index], (uint)waveHeaderSize );
-			CheckError( result );
+			uint result = PrepareHeader( devHandle, ref header, (uint)waveHeaderSize );
+			CheckError( result, "PrepareHeader" );
+			result = Write( devHandle, ref header, (uint)waveHeaderSize );
+			CheckError( result, "Write" );
+			headers[index] = header;
 		}
 		
 		void CheckBufferSize( int index, int chunkDataSize ) {		
@@ -106,15 +106,16 @@ namespace SharpWave {
 		
 		void Free( ref WaveHeader header ) {
 			uint result = UnprepareHeader( devHandle, ref header, (uint)waveHeaderSize );
-			CheckError( result );
+			CheckError( result, "UnprepareHeader" );
 		}
 		
-		void CheckError( uint result ) {
-			if( result != 0 ) {
-				string description = GetErrorDescription( result );
-				const string format = "{0} (Description: {1})";
-				throw new InvalidOperationException( String.Format( format, result, description ) );
-			}
+		void CheckError( uint result, string func ) {
+			if( result == 0 ) return;
+			
+			string description = GetErrorDescription( result );
+			const string format = "{0} at {1} ({2})";
+			string text = String.Format( format, result, func, description );
+			throw new InvalidOperationException( text );
 		}
 		
 		public void Dispose() {
@@ -127,7 +128,8 @@ namespace SharpWave {
 		void DisposeDevice() {
 			if( devHandle != IntPtr.Zero ) {
 				Console.WriteLine( "disposing device" );
-				Close( devHandle );
+				uint result = Close( devHandle );
+				CheckError( result, "Close" );
 				devHandle = IntPtr.Zero;
 			}
 		}
