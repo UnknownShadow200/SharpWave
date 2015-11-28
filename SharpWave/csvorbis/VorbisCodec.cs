@@ -32,9 +32,52 @@ namespace SharpWave.Codecs.Vorbis {
 			chunk.BitsPerSample = 16;
 		}
 
-		AudioChunk chunk;
+		AudioChunk chunk, rawChunk;
 		Stream input;
+		byte[] rawPcm;
+		int rawIndex;
 		public IEnumerable<AudioChunk> StreamData( Stream source ) {
+			// the original iterator may not always return enough samples,
+			// so we will do our own buffering here.
+			
+			
+			rawChunk = new AudioChunk();
+			foreach( AudioChunk chunk in StreamDataCore( source ) ) {
+				if( rawPcm == null ) 
+					InitRaw( chunk );
+				if( rawIndex + chunk.Length > rawPcm.Length )
+					ResizeRaw( rawIndex + chunk.Length );
+				
+				Buffer.BlockCopy( chunk.Data, 0, rawPcm, rawIndex, chunk.Length );
+				rawIndex += chunk.Length;
+				if( rawIndex >= (rawChunk.Frequency / 4) ) {
+					rawChunk.BytesUsed = rawIndex;
+					rawIndex = 0;
+					yield return rawChunk;
+				}
+			}
+			
+			rawChunk.BytesUsed = rawIndex;
+			yield return rawChunk;
+			yield break;
+		}
+		
+		void InitRaw( AudioChunk chunk ) {
+			rawPcm = new byte[chunk.Frequency / 4];
+			rawChunk.BitsPerSample = chunk.BitsPerSample;
+			rawChunk.Channels = chunk.Channels;
+			rawChunk.Frequency = chunk.Frequency;
+			rawChunk.Data = rawPcm;
+		}
+		
+		void ResizeRaw( int newLen ) {
+			byte[] oldPcm = rawPcm;
+			rawPcm = new byte[rawIndex + chunk.Length];
+			Buffer.BlockCopy( oldPcm, 0, rawPcm, 0, rawIndex );
+			rawChunk.Data = rawPcm;
+		}
+		
+		IEnumerable<AudioChunk> StreamDataCore( Stream source ) {
 			input = source;
 			int convsize = 4096 * 2;
 			byte[] convbuffer = new byte[convsize]; // take 8k out of the data segment, not the stack
@@ -148,7 +191,7 @@ namespace SharpWave.Codecs.Vorbis {
 				// multiple vorbis_block structures
 				// for vd here
 
-				float[][][] _pcm = new float[1][][];
+				float[][] pcm = null;
 				int[] _index = new int[vi.channels];
 				// The rest is just a straight decode loop until end of stream
 				while (eos == 0)
@@ -181,26 +224,24 @@ namespace SharpWave.Codecs.Vorbis {
 								// the size of each channel.  Convert the float values
 								// (-1.<=range<=1.) to whatever PCM format and write it out
 
-								while ((samples = vd.synthesis_pcmout(_pcm, _index)) > 0)
+								while ((samples = vd.synthesis_pcmout(ref pcm, _index)) > 0)
 								{
-									float[][] pcm = _pcm[0];
 									int bout = (samples < convsize ? samples : convsize);
 
 									// convert floats to 16 bit signed ints (host order) and
 									// interleave
-									for (i = 0; i < vi.channels; i++)
+									for (int ch = 0; ch < vi.channels; ch++)
 									{
-										int ptr = i * 2;
-										int mono = _index[i];
+										int ptr = ch * 2;
+										int offset = _index[ch];
+										float[] chPcm = pcm[ch];
 										for (int j = 0; j < bout; j++)
 										{
-											int val = (int)(pcm[i][mono + j] * 32767.0);
-											if (val > 32767)
-												val = 32767;
-											if (val < -32768)
-												val = -32768;
-											
+											int val = (int)(chPcm[offset + j] * 32767);
+											if (val > 32767) val = 32767;
+											if (val < -32768) val = -32768;											
 											if (val < 0) val = val | 0x8000;
+											
 											convbuffer[ptr] = (byte)(val);
 											convbuffer[ptr + 1] = (byte)((uint)val >> 8);
 											ptr += 2 * (vi.channels);
@@ -211,8 +252,8 @@ namespace SharpWave.Codecs.Vorbis {
 									chunk.Frequency = vi.rate;
 									chunk.Data = convbuffer;
 									chunk.BytesUsed = 2 * vi.channels * bout;
-									yield return chunk;
 									vd.synthesis_read(bout);
+									yield return chunk;
 								}
 							}
 						}
@@ -240,6 +281,7 @@ namespace SharpWave.Codecs.Vorbis {
 
 			// OK, clean up the framer
 			oy.clear();
+			yield break;
 		}
 
 	}

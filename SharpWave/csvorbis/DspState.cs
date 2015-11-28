@@ -298,17 +298,13 @@ namespace csvorbis
 			pcm_current = endW;
 		}
 
-		// pcm == NULL indicates we just want the pending samples, no more
-		public int synthesis_pcmout(float[][][] _pcm, int[] index)
+		public int synthesis_pcmout(ref float[][] _pcm, int[] index)
 		{
 			if(pcm_returned<centerW)
 			{
-				if(_pcm != null)
-				{
-					for(int i = 0;i<vi.channels;i++)
-						index[i] = pcm_returned;
-					_pcm[0] = pcm;
-				}
+				for(int i = 0;i<vi.channels;i++)
+					index[i] = pcm_returned;
+				_pcm = pcm;
 				return(centerW-pcm_returned);
 			}
 			return(0);
