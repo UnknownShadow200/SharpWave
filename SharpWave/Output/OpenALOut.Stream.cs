@@ -29,6 +29,8 @@ namespace SharpWave {
 				CheckError();
 				usedCount++;
 			}
+			Console.WriteLine( "used: " + usedCount );
+			if( usedCount == 0 ) return;
 			
 			AL.SourceQueueBuffers( source, usedCount, bufferIDs );
 			CheckError();

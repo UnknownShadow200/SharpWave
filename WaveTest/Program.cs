@@ -1,10 +1,7 @@
 ﻿using System;
+using System.IO;
 using SharpWave;
 using SharpWave.Codecs;
-using SharpWave.Codecs.Vorbis;
-using SharpWave.Containers;
-using System.IO;
-
 namespace WaveTest {
 	
 	class Program {
@@ -13,10 +10,17 @@ namespace WaveTest {
 
 			using( var player = new WinMmOut() ) {
 				player.Create( 4 );
-				using( FileStream fs = File.OpenRead( "hal1.ogg" ) ) {
-					var container = new OggContainer( fs );
-					player.PlayStreaming( container );
-				}
+				byte[] data = File.ReadAllBytes( "dig.bin" );
+				
+				var container = new BinContainer( 44100, 5 );
+				BinCodec codec = container.GetAudioCodec() as BinCodec;
+				codec.AddSound( data, 0, data.Length / 2, 1 );
+				codec.AddSound( data, data.Length / 4, data.Length / 2, 1 );
+				codec.AddSound( data, data.Length / 2 - 1, data.Length / 2, 1 );
+				//codec.AddSound( data, data.Length / 2 - 1, data.Length / 2, 1 );
+				codec.AddSound( data, 0, data.Length, 1 );
+				//codec.AddSound( data, 1497192, 121708, 2 );
+				player.PlayStreaming( container );
 			}
 			Console.WriteLine( "done playing" );
 			Console.ReadKey( true );

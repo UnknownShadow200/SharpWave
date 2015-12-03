@@ -66,7 +66,7 @@ namespace SharpWave.Codecs.Vorbis {
 			rawPcm = new byte[chunk.Frequency / 4];
 			rawChunk.BitsPerSample = chunk.BitsPerSample;
 			rawChunk.Channels = chunk.Channels;
-			rawChunk.Frequency = chunk.Frequency;
+			rawChunk.Frequency = chunk.Frequency / 2;
 			rawChunk.Data = rawPcm;
 		}
 		

@@ -44,6 +44,7 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BinCodec.cs" />
     <Compile Include="csvorbis\Block.cs" />
     <Compile Include="csvorbis\CodeBook.cs" />
     <Compile Include="csvorbis\Comment.cs" />

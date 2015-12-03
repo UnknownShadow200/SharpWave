@@ -26,8 +26,9 @@ namespace SharpWave {
 					UpdateBuffer( i, chunks.Current );
 					usedBuffers++;
 				}
-			}
+			}			
 			Console.WriteLine( "used: " + usedBuffers );
+			if( usedBuffers == 0 ) return;
 			
 			bool ranOutOfChunks = false;
 			while( !AllDone( ranOutOfChunks, usedBuffers ) ) {
