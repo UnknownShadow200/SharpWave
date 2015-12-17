@@ -5,7 +5,7 @@ using SharpWave.Codecs;
 
 namespace SharpWave {
 	
-	/// <summary> Outputs audio to the default sound playback device using the 
+	/// <summary> Outputs audio to the default sound playback device using the
 	/// native WinMm library. Windows only. </summary>
 	public sealed partial class WinMmOut : IAudioOutput {
 		
@@ -13,7 +13,7 @@ namespace SharpWave {
 		readonly int waveHeaderSize;
 		public WinMmOut() {
 			waveHeaderSize = Marshal.SizeOf( default( WaveHeader ) );
-						
+			
 		}
 		IntPtr headers;
 		IntPtr[] dataHandles;
@@ -43,6 +43,23 @@ namespace SharpWave {
 			}
 		}
 		
+		bool playingAsync;
+		public void PlayRawAsync( AudioChunk chunk ) {
+			Initalise( chunk );
+			UpdateBuffer( 0, chunk );
+			playingAsync = true;
+		}
+		
+		public unsafe bool DoneRawAsync() {
+			if( !playingAsync ) return true;
+			WaveHeader header = *((WaveHeader*)headers);
+			if( (header.Flags & WaveHeaderFlags.Done) != 0 ) {
+				Free( 0 );
+				playingAsync = false;
+				return true;
+			}
+			return false;
+		}
 		
 		bool pendingStop;
 		public void Stop() {
@@ -70,7 +87,7 @@ namespace SharpWave {
 			format.AverageBytesPerSecond = first.Frequency * format.BlockAlign;
 			
 			WaveOpenFlags flags = WaveOpenFlags.CallbackNull;
-			uint result = Open( out devHandle, new UIntPtr( 0xFFFF ), ref format, 
+			uint result = Open( out devHandle, new UIntPtr( 0xFFFF ), ref format,
 			                   IntPtr.Zero, UIntPtr.Zero, flags );
 			CheckError( result, "Open" );
 		}
@@ -79,7 +96,7 @@ namespace SharpWave {
 			WaveHeader header = new WaveHeader();
 			byte[] data = chunk.Data;
 			CheckBufferSize( index, chunk.Length );
-			IntPtr handle = dataHandles[index];			
+			IntPtr handle = dataHandles[index];
 			fixed( byte* src = data ) {
 				byte* chunkPtr = src + chunk.BytesOffset;
 				MemUtils.memcpy( (IntPtr)chunkPtr, handle, chunk.Length );
@@ -97,7 +114,7 @@ namespace SharpWave {
 			CheckError( result, "Write" );
 		}
 		
-		void CheckBufferSize( int index, int chunkDataSize ) {		
+		void CheckBufferSize( int index, int chunkDataSize ) {
 			if( chunkDataSize <= dataSizes[index] ) return;
 			
 			IntPtr ptr = dataHandles[index];

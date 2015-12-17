@@ -32,15 +32,7 @@ namespace SharpWave {
 		}
 		
 		public void PlayRaw( AudioChunk chunk ) {
-			Initalise( chunk );
-			UpdateBuffer( bufferIDs[0], chunk );
-			CheckError();
-			// TODO: Use AL.Source(source, ALSourcei.Buffer, buffer);
-			AL.SourceQueueBuffers( source, 1, bufferIDs );
-			CheckError();
-			AL.SourcePlay( source );
-			CheckError();
-			
+			SetupRaw( chunk );		
 			int state;
 			while( !pendingStop ) {
 				AL.GetSource( source, ALGetSourcei.SourceState, out state );
@@ -50,6 +42,36 @@ namespace SharpWave {
 			}
 			uint bufferId = 0;
 			AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+		}
+		
+		bool playingAsync;
+		public void PlayRawAsync( AudioChunk chunk ) { 
+			SetupRaw( chunk ); 
+			playingAsync = true;
+		}
+		
+		public bool DoneRawAsync() {
+			if( !playingAsync ) return true;
+			int state;
+			AL.GetSource( source, ALGetSourcei.SourceState, out state );
+			if( (ALSourceState)state == ALSourceState.Playing )
+				return false;
+			
+			playingAsync = false;
+			uint bufferId = 0;
+			AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+			return true;
+		}
+		
+		void SetupRaw( AudioChunk chunk ) {
+			Initalise( chunk );
+			UpdateBuffer( bufferIDs[0], chunk );
+			CheckError();
+			// TODO: Use AL.Source(source, ALSourcei.Buffer, buffer);
+			AL.SourceQueueBuffers( source, 1, bufferIDs );
+			CheckError();
+			AL.SourcePlay( source );
+			CheckError();
 		}
 		
 		unsafe void UpdateBuffer( uint bufferId, AudioChunk chunk ) {

@@ -50,6 +50,14 @@ namespace SharpWave {
 			}
 		}
 		
+		public void PlayRawAsync( AudioChunk chunk ) {
+			throw new NotImplementedException();
+		}
+		
+		public bool DoneRawAsync() {
+			throw new NotImplementedException();
+		}
+		
 		public void Dispose() {
 			if( LeaveOpen ) return;
 			OutStream.Close();

@@ -17,5 +17,11 @@ namespace SharpWave {
 		
 		/// <summary> Plays an entire single chunk of PCM audio. </summary>
 		void PlayRaw( AudioChunk chunk );
+		
+		/// <summary> Plays an entire single chunk of PCM audio asynchronously. </summary>
+		void PlayRawAsync( AudioChunk chunk );
+		
+		/// <summary> Whether the last single chunk PCM audio chunk played asynchronously has finished playing. </summary>
+		bool DoneRawAsync();
 	}
 }
