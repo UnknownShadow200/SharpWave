@@ -22,7 +22,7 @@ namespace SharpWave {
 			for( int i = 0; i < bufferIDs.Length; i++ ) {
 				if( !chunks.MoveNext() ) break;
 				
-				AudioChunk chunk = chunks.Current;	
+				AudioChunk chunk = chunks.Current;
 				if( i == 0 )
 					Initalise( chunk );
 				UpdateBuffer( bufferIDs[i], chunk );
@@ -32,25 +32,40 @@ namespace SharpWave {
 			Console.WriteLine( "used: " + usedCount );
 			if( usedCount == 0 ) return;
 			
-			AL.SourceQueueBuffers( source, usedCount, bufferIDs );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.SourceQueueBuffers( source, usedCount, bufferIDs );
+			}
 			CheckError();
-			AL.SourcePlay( source );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.SourcePlay( source );
+			}
 			CheckError();
 			
 			while( !pendingStop ) {
 				int buffersProcessed = 0;
-				AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
+				lock( globalLock ) {
+					context.MakeCurrent();
+					AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
+				}
 				CheckError();
 				
 				if( buffersProcessed > 0 ) {
 					uint bufferId = 0;
-					AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+					lock( globalLock ) {
+						context.MakeCurrent();
+						AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+					}
 					if( !chunks.MoveNext() ) break;
 					
 					AudioChunk chunk = chunks.Current;
 					UpdateBuffer( bufferId, chunk );
 					CheckError();
-					AL.SourceQueueBuffers( source, 1, ref bufferId );
+					lock( globalLock ) {
+						context.MakeCurrent();
+						AL.SourceQueueBuffers( source, 1, ref bufferId );
+					}
 					CheckError();
 				}
 				Thread.Sleep( 1 );
@@ -59,18 +74,27 @@ namespace SharpWave {
 			
 			while( !pendingStop ) {
 				int buffersProcessed = 0;
-				AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
+				lock( globalLock ) {
+					context.MakeCurrent();
+					AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
+				}
 				CheckError();
 				
 				if( buffersProcessed > 0 ) {
 					for( int i = 0; i < buffersProcessed; i++ ) {
 						uint bufferId = 0;
-						AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+						lock( globalLock ) {
+							context.MakeCurrent();
+							AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+						}
 					}
 				}
 				
 				int state;
-				AL.GetSource( source, ALGetSourcei.SourceState, out state );
+				lock( globalLock ) {
+					context.MakeCurrent();
+					AL.GetSource( source, ALGetSourcei.SourceState, out state );
+				}
 				if( (ALSourceState)state != ALSourceState.Playing )
 					break;
 				Thread.Sleep( 1 );

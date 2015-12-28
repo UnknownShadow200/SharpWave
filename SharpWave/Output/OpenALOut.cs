@@ -6,20 +6,25 @@ using SharpWave.Codecs;
 
 namespace SharpWave {
 	
-	/// <summary> Outputs audio to the default sound playback device using the 
+	/// <summary> Outputs audio to the default sound playback device using the
 	/// native OpenAL library. Cross platform. </summary>
 	public unsafe sealed partial class OpenALOut : IAudioOutput {
 		uint source = uint.MaxValue;
 		uint[] bufferIDs;
-		AudioContext context, shareContext;
+		public AudioContext context, shareContext;
 		ALFormat format;
 		
-		public void Create( int numBuffers ) {			
+		static readonly object globalLock = new object();
+		
+		public void Create( int numBuffers ) {
 			Create( numBuffers, null );
 		}
 		
 		public void Create( int numBuffers, IAudioOutput share ) {
-			AL.DistanceModel( ALDistanceModel.None );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.DistanceModel( ALDistanceModel.None );
+			}
 			bufferIDs = new uint[numBuffers];
 			OpenALOut alOut = share as OpenALOut;
 			
@@ -29,10 +34,11 @@ namespace SharpWave {
 				context = alOut.context;
 				shareContext = context;
 			}
+			Console.WriteLine( "al context:" + context );
 		}
 		
 		public void PlayRaw( AudioChunk chunk ) {
-			SetupRaw( chunk );		
+			SetupRaw( chunk );
 			int state;
 			while( !pendingStop ) {
 				AL.GetSource( source, ALGetSourcei.SourceState, out state );
@@ -45,21 +51,27 @@ namespace SharpWave {
 		}
 		
 		bool playingAsync;
-		public void PlayRawAsync( AudioChunk chunk ) { 
-			SetupRaw( chunk ); 
+		public void PlayRawAsync( AudioChunk chunk ) {
+			SetupRaw( chunk );
 			playingAsync = true;
 		}
 		
 		public bool DoneRawAsync() {
 			if( !playingAsync ) return true;
 			int state;
-			AL.GetSource( source, ALGetSourcei.SourceState, out state );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.GetSource( source, ALGetSourcei.SourceState, out state );
+			}
 			if( (ALSourceState)state == ALSourceState.Playing )
 				return false;
 			
 			playingAsync = false;
 			uint bufferId = 0;
-			AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.SourceUnqueueBuffers( source, 1, ref bufferId );
+			}
 			return true;
 		}
 		
@@ -68,21 +80,35 @@ namespace SharpWave {
 			UpdateBuffer( bufferIDs[0], chunk );
 			CheckError();
 			// TODO: Use AL.Source(source, ALSourcei.Buffer, buffer);
-			AL.SourceQueueBuffers( source, 1, bufferIDs );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.SourceQueueBuffers( source, 1, bufferIDs );
+			}
 			CheckError();
-			AL.SourcePlay( source );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.SourcePlay( source );
+			}
 			CheckError();
 		}
 		
 		unsafe void UpdateBuffer( uint bufferId, AudioChunk chunk ) {
 			fixed( byte* src = chunk.Data ) {
 				byte* chunkPtr = src + chunk.BytesOffset;
-				AL.BufferData( bufferId, format, (IntPtr)chunkPtr, 
-				              chunk.Length, chunk.Frequency );
+				lock( globalLock ) {
+					context.MakeCurrent();
+					AL.BufferData( bufferId, format, (IntPtr)chunkPtr,
+					              chunk.Length, chunk.Frequency );
+				}
 			}
 		}
+		
 		void CheckError() {
-			ALError error = AL.GetError();
+			ALError error;
+			lock( globalLock ) {
+				context.MakeCurrent();
+				error = AL.GetError();
+			}
 			if( error != ALError.NoError ) {
 				Console.WriteLine( "OpenAL error:" + error );
 				throw new Exception();
@@ -95,13 +121,23 @@ namespace SharpWave {
 		}
 		
 		public void Dispose() {
-			if( source != uint.MaxValue ) {
-				AL.DeleteSources( 1, ref source );
-				AL.DeleteBuffers( bufferIDs );
-				CheckError();
-			}
-			if( shareContext != null )
+			DisposeSource();
+			if( shareContext == null && context != null )
 				context.Dispose();
+		}
+		
+		void DisposeSource() {
+			if( source == uint.MaxValue )
+				return;
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.DeleteSources( 1, ref source );
+			}
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.DeleteBuffers( bufferIDs );
+			}
+			CheckError();
 		}
 		
 		AudioChunk last;
@@ -114,14 +150,21 @@ namespace SharpWave {
 				return;
 			
 			last = first;
-			Dispose();
+			DisposeSource();
 			uint sourceU = 0;
-			AL.GenSources( 1, out sourceU );
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.GenSources( 1, out sourceU );
+			}
 			source = sourceU;
 			CheckError();
 			
-			fixed( uint* bufferPtr = bufferIDs )
-				AL.GenBuffers( bufferIDs.Length, bufferPtr );
+			fixed( uint* bufferPtr = bufferIDs ) {
+				lock( globalLock ) {
+					context.MakeCurrent();
+					AL.GenBuffers( bufferIDs.Length, bufferPtr );
+				}
+			}
 			CheckError();
 		}
 		
