@@ -21,10 +21,6 @@ namespace SharpWave {
 		}
 		
 		public void Create( int numBuffers, IAudioOutput share ) {
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.DistanceModel( ALDistanceModel.None );
-			}
 			bufferIDs = new uint[numBuffers];
 			OpenALOut alOut = share as OpenALOut;
 			
@@ -33,6 +29,11 @@ namespace SharpWave {
 			} else {
 				context = alOut.context;
 				shareContext = context;
+			}
+			
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.DistanceModel( ALDistanceModel.None );
 			}
 			Console.WriteLine( "al context:" + context );
 		}
