@@ -59,28 +59,31 @@ namespace SharpWave {
 			return true;
 		}
 
-		[DllImport( "winmm.dll", EntryPoint = "waveOutGetErrorText", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint GetErrorText( uint error, StringBuilder buffer, uint buffferLength );
+		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto )]
+		static extern uint waveOutGetErrorText( uint error, StringBuilder buffer, uint bufferLen );
 
-		[DllImport( "winmm.dll", EntryPoint = "waveOutOpen", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint Open( out IntPtr handle, UIntPtr deviceID, ref WaveFormatEx format,
+		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto )]
+		static extern uint waveOutOpen( out IntPtr handle, UIntPtr deviceID, ref WaveFormatEx format,
 		                        IntPtr callback, UIntPtr callbackInstance, WaveOpenFlags flags );
 		
-		[DllImport( "winmm.dll", EntryPoint = "waveOutClose", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint Close( IntPtr handle );
+		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto )]
+		static extern uint waveOutClose( IntPtr handle );
 		
-		[DllImport( "winmm.dll", EntryPoint = "waveOutPrepareHeader", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint PrepareHeader( IntPtr handle, IntPtr header, uint headerByteSize );
+		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto )]
+		static extern uint waveOutPrepareHeader( IntPtr handle, IntPtr header, uint hdrSize );
 		
-		[DllImport( "winmm.dll", EntryPoint = "waveOutUnprepareHeader", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint UnprepareHeader( IntPtr handle, IntPtr header, uint headerByteSize );
+		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto )]
+		static extern uint waveOutUnprepareHeader( IntPtr handle, IntPtr header, uint hdrSize );
 		
-		[DllImport( "winmm.dll", EntryPoint = "waveOutWrite", SetLastError = true, CharSet = CharSet.Auto )]
-		static extern uint Write( IntPtr handle, IntPtr header, uint headerByteSize );
+		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto )]
+		static extern uint waveOutWrite( IntPtr handle, IntPtr header, uint hdrSize );
+		
+		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto )]
+		static extern uint waveOutGetNumDevs();
 		
 		static string GetErrorDescription( uint error ) {
 			StringBuilder message = new StringBuilder( 512 );
-			uint result = GetErrorText( error, message, (uint)message.Capacity );
+			uint result = waveOutGetErrorText( error, message, (uint)message.Capacity );
 			if( result == 0 )
 				return message.ToString();
 			return "waveOutGetErrorText failed.";
