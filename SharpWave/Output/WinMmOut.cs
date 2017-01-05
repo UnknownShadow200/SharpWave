@@ -89,8 +89,12 @@ namespace SharpWave {
 			format.AverageBytesPerSecond = first.Frequency * format.BlockAlign;
 			
 			WaveOpenFlags flags = WaveOpenFlags.CallbackNull;
-			uint result = Open( out devHandle, new UIntPtr( 0xFFFF ), ref format,
-			                   IntPtr.Zero, UIntPtr.Zero, flags );
+			uint devices = waveOutGetNumDevs();
+			if( devices == 0 ) 
+				throw new InvalidOperationException( "No audio devices found" );
+			
+			uint result = waveOutOpen( out devHandle, new UIntPtr( 0xFFFF ), ref format,
+			                          IntPtr.Zero, UIntPtr.Zero, flags );
 			CheckError( result, "Open" );
 		}
 		
@@ -110,9 +114,9 @@ namespace SharpWave {
 			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
 			*((WaveHeader*)address) = header;
 			
-			uint result = PrepareHeader( devHandle, address, (uint)waveHeaderSize );
+			uint result = waveOutPrepareHeader( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "PrepareHeader" );
-			result = Write( devHandle, address, (uint)waveHeaderSize );
+			result = waveOutWrite( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "Write" );
 		}
 		
@@ -127,7 +131,7 @@ namespace SharpWave {
 		
 		unsafe void Free( int index ) {
 			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
-			uint result = UnprepareHeader( devHandle, address, (uint)waveHeaderSize );
+			uint result = waveOutUnprepareHeader( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "UnprepareHeader" );
 		}
 		
@@ -150,7 +154,7 @@ namespace SharpWave {
 		void DisposeDevice() {
 			if( devHandle != IntPtr.Zero ) {
 				Console.WriteLine( "disposing device" );
-				uint result = Close( devHandle );
+				uint result = waveOutClose( devHandle );
 				CheckError( result, "Close" );
 				devHandle = IntPtr.Zero;
 			}
