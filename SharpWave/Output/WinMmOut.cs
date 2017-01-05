@@ -66,15 +66,17 @@ namespace SharpWave {
 			pendingStop = true;
 		}
 		
-		AudioChunk last;
+		int lastFreq = -1, lastBits = -1, lastChannels = -1;
 		public void Initalise( AudioChunk first ) {
 			// Don't need to recreate device if it's the same.
-			if( last != null && last.BitsPerSample == first.BitsPerSample &&
-			   last.Channels == first.Channels && last.Frequency == first.Frequency )
+			if( lastBits == first.BitsPerSample && lastChannels == first.Channels && lastFreq == first.Frequency )
 				return;
 			
+			lastFreq = first.Frequency;
+			lastBits = first.BitsPerSample;
+			lastChannels = first.Channels;
+			
 			Console.WriteLine( "init" );
-			last = first;
 			DisposeDevice();
 			WaveFormatEx format = new WaveFormatEx();
 			

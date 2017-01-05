@@ -141,16 +141,17 @@ namespace SharpWave {
 			CheckError();
 		}
 		
-		AudioChunk last;
+		int lastFreq = -1, lastBits = -1, lastChannels = -1;
 		void Initalise( AudioChunk first ) {
 			format = GetALFormat( first.Channels, first.BitsPerSample );
-			
 			// Don't need to recreate device if it's the same.
-			if( last != null && last.BitsPerSample == first.BitsPerSample &&
-			   last.Channels == first.Channels && last.Frequency == first.Frequency )
+			if( lastBits == first.BitsPerSample && lastChannels == first.Channels && lastFreq == first.Frequency )
 				return;
 			
-			last = first;
+			lastFreq = first.Frequency;
+			lastBits = first.BitsPerSample;
+			lastChannels = first.Channels;
+			
 			DisposeSource();
 			uint sourceU = 0;
 			lock( globalLock ) {
