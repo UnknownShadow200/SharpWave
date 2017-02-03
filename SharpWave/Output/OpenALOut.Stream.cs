@@ -23,10 +23,10 @@ namespace SharpWave {
 				if( !chunks.MoveNext() ) break;
 				
 				AudioChunk chunk = chunks.Current;
-				if( i == 0 )
-					Initalise( chunk );
+				if( i == 0 ) Initalise( chunk );
+				
 				UpdateBuffer( bufferIDs[i], chunk );
-				CheckError();
+				CheckError( "PlayStreaming.UpdateBuffer (first)" );
 				usedCount++;
 			}
 			Console.WriteLine( "used: " + usedCount );
@@ -36,12 +36,13 @@ namespace SharpWave {
 				context.MakeCurrent();
 				AL.SourceQueueBuffers( source, usedCount, bufferIDs );
 			}
-			CheckError();
+			CheckError( "PlayStreaming.SourceQueueBuffers (first)" );
+			
 			lock( globalLock ) {
 				context.MakeCurrent();
 				AL.SourcePlay( source );
 			}
-			CheckError();
+			CheckError( "PlayStreaming.SourcePlay" );
 			
 			while( !pendingStop ) {
 				int buffersProcessed = 0;
@@ -49,7 +50,7 @@ namespace SharpWave {
 					context.MakeCurrent();
 					AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
 				}
-				CheckError();
+				CheckError( "PlayStreaming.GetSources" );
 				
 				if( buffersProcessed > 0 ) {
 					uint bufferId = 0;
@@ -61,12 +62,13 @@ namespace SharpWave {
 					
 					AudioChunk chunk = chunks.Current;
 					UpdateBuffer( bufferId, chunk );
-					CheckError();
+					CheckError( "PlayStreaming.BufferData" );
+					           
 					lock( globalLock ) {
 						context.MakeCurrent();
 						AL.SourceQueueBuffers( source, 1, ref bufferId );
 					}
-					CheckError();
+					CheckError( "PlayStreaming.SourceQueueBuffers" );
 				}
 				Thread.Sleep( 1 );
 			}
@@ -78,7 +80,7 @@ namespace SharpWave {
 					context.MakeCurrent();
 					AL.GetSource( source, ALGetSourcei.BuffersProcessed, out buffersProcessed );
 				}
-				CheckError();
+				CheckError( "PlayStreaming.GetSource" );
 				
 				if( buffersProcessed > 0 ) {
 					for( int i = 0; i < buffersProcessed; i++ ) {

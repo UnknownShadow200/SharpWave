@@ -79,18 +79,18 @@ namespace SharpWave {
 		void SetupRaw( AudioChunk chunk ) {
 			Initalise( chunk );
 			UpdateBuffer( bufferIDs[0], chunk );
-			CheckError();
+			CheckError( "SetupRaw.BufferData" );
 			// TODO: Use AL.Source(source, ALSourcei.Buffer, buffer);
 			lock( globalLock ) {
 				context.MakeCurrent();
 				AL.SourceQueueBuffers( source, 1, bufferIDs );
 			}
-			CheckError();
+			CheckError( "SetupRaw.QueueBuffers" );
 			lock( globalLock ) {
 				context.MakeCurrent();
 				AL.SourcePlay( source );
 			}
-			CheckError();
+			CheckError( "SetupRaw.SourcePlay" );
 		}
 		
 		unsafe void UpdateBuffer( uint bufferId, AudioChunk chunk ) {
@@ -104,15 +104,15 @@ namespace SharpWave {
 			}
 		}
 		
-		void CheckError() {
+		void CheckError(string location) {
 			ALError error;
 			lock( globalLock ) {
 				context.MakeCurrent();
 				error = AL.GetError();
 			}
+			
 			if( error != ALError.NoError ) {
-				Console.WriteLine( "OpenAL error:" + error );
-				throw new Exception();
+				throw new InvalidOperationException( "OpenAL error: " + error + " at " + location);
 			}
 		}
 		
@@ -138,7 +138,7 @@ namespace SharpWave {
 				context.MakeCurrent();
 				AL.DeleteBuffers( bufferIDs );
 			}
-			CheckError();
+			CheckError( "Initalise.DeleteBuffers" );
 		}
 		
 		int lastFreq = -1, lastBits = -1, lastChannels = -1;
@@ -159,7 +159,7 @@ namespace SharpWave {
 				AL.GenSources( 1, out sourceU );
 			}
 			source = sourceU;
-			CheckError();
+			CheckError( "Initalise.GenSources" );
 			
 			fixed( uint* bufferPtr = bufferIDs ) {
 				lock( globalLock ) {
@@ -167,7 +167,7 @@ namespace SharpWave {
 					AL.GenBuffers( bufferIDs.Length, bufferPtr );
 				}
 			}
-			CheckError();
+			CheckError( "Initalise.GenBuffers" );
 		}
 		
 		static ALFormat GetFormatFor( ALFormat baseFormat, int bitsPerSample ) {
