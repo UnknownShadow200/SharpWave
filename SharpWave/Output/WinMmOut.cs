@@ -18,6 +18,21 @@ namespace SharpWave {
 		IntPtr headers;
 		IntPtr[] dataHandles;
 		int[] dataSizes;
+		
+		// TODO: need to check device support
+		public void SetVolume(float volume) {
+			uint packed = (uint)(volume * 0xFFFF);
+			packed = (packed << 16) | packed; // left and right same
+			uint result = WinMmNative.waveOutSetVolume(devHandle, packed);
+			CheckError( result, "SetVolume" );
+		}
+		
+		public void SetPitch(float pitch) {
+			uint packed = (uint)(pitch * 0x1000);
+			uint result = WinMmNative.waveOutSetPitch(devHandle, packed);
+			CheckError( result, "SetPitch" );
+		}
+		
 
 		public void Create( int numBuffers ) {
 			headers = Marshal.AllocHGlobal( waveHeaderSize * numBuffers );
@@ -61,10 +76,9 @@ namespace SharpWave {
 			return false;
 		}
 		
+		
 		bool pendingStop;
-		public void Stop() {
-			pendingStop = true;
-		}
+		public void Stop() { pendingStop = true; }
 		
 		int lastFreq = -1, lastBits = -1, lastChannels = -1;
 		public void Initalise( AudioChunk first ) {
@@ -89,12 +103,12 @@ namespace SharpWave {
 			format.AverageBytesPerSecond = first.Frequency * format.BlockAlign;
 			
 			WaveOpenFlags flags = WaveOpenFlags.CallbackNull;
-			uint devices = waveOutGetNumDevs();
-			if( devices == 0 ) 
+			uint devices = WinMmNative.waveOutGetNumDevs();
+			if( devices == 0 )
 				throw new InvalidOperationException( "No audio devices found" );
 			
-			uint result = waveOutOpen( out devHandle, new UIntPtr( 0xFFFF ), ref format,
-			                          IntPtr.Zero, UIntPtr.Zero, flags );
+			uint result = WinMmNative.waveOutOpen( out devHandle, new UIntPtr( 0xFFFF ), ref format,
+			                                      IntPtr.Zero, UIntPtr.Zero, flags );
 			CheckError( result, "Open" );
 		}
 		
@@ -114,9 +128,9 @@ namespace SharpWave {
 			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
 			*((WaveHeader*)address) = header;
 			
-			uint result = waveOutPrepareHeader( devHandle, address, (uint)waveHeaderSize );
+			uint result = WinMmNative.waveOutPrepareHeader( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "PrepareHeader" );
-			result = waveOutWrite( devHandle, address, (uint)waveHeaderSize );
+			result = WinMmNative.waveOutWrite( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "Write" );
 		}
 		
@@ -131,14 +145,14 @@ namespace SharpWave {
 		
 		unsafe void Free( int index ) {
 			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
-			uint result = waveOutUnprepareHeader( devHandle, address, (uint)waveHeaderSize );
+			uint result = WinMmNative.waveOutUnprepareHeader( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "UnprepareHeader" );
 		}
 		
 		void CheckError( uint result, string func ) {
 			if( result == 0 ) return;
 			
-			string description = GetErrorDescription( result );
+			string description = WinMmNative.GetErrorDescription( result );
 			const string format = "{0} at {1} ({2})";
 			string text = String.Format( format, result, func, description );
 			throw new InvalidOperationException( text );
@@ -154,7 +168,7 @@ namespace SharpWave {
 		void DisposeDevice() {
 			if( devHandle != IntPtr.Zero ) {
 				Console.WriteLine( "disposing device" );
-				uint result = waveOutClose( devHandle );
+				uint result = WinMmNative.waveOutClose( devHandle );
 				CheckError( result, "Close" );
 				devHandle = IntPtr.Zero;
 			}

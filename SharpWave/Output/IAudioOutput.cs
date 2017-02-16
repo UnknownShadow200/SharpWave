@@ -23,5 +23,9 @@ namespace SharpWave {
 		
 		/// <summary> Whether the last single chunk PCM audio chunk played asynchronously has finished playing. </summary>
 		bool DoneRawAsync();
+		
+		void SetVolume(float volume);
+		
+		void SetPitch(float pitch);
 	}
 }

@@ -61,6 +61,9 @@ namespace OpenTK.Audio.OpenAL {
 		[DllImport(Lib, EntryPoint = "alSourcei", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void Source(uint sid, ALSourcei param, uint value);
 
+		[DllImport(Lib, EntryPoint = "alSourcef", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]		
+		public static extern void Source(uint sid, ALSourcef param, float value);
+
 		[DllImport(Lib, EntryPoint = "alGetSourcei", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void GetSource(uint sid, ALGetSourcei param, [Out] out int value);
 

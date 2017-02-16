@@ -72,6 +72,7 @@
     <Compile Include="OpenTK\AudioDeviceEnumerator.cs" />
     <Compile Include="OpenTK\AudioDeviceErrorChecker.cs" />
     <Compile Include="OpenTK\AudioException.cs" />
+    <Compile Include="Output\WinMmNative.cs" />
     <Compile Include="Output\OpenALOut.cs" />
     <Compile Include="Output\RawOut.cs" />
     <Compile Include="Output\WinMmOut.cs" />

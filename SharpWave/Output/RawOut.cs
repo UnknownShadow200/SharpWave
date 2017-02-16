@@ -62,5 +62,9 @@ namespace SharpWave {
 			if( LeaveOpen ) return;
 			OutStream.Close();
 		}
+		
+		public void SetVolume(float volume) { }
+		
+		public void SetPitch(float pitch) { }
 	}
 }

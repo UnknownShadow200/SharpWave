@@ -16,6 +16,21 @@ namespace SharpWave {
 		
 		static readonly object globalLock = new object();
 		
+		public void SetVolume(float volume) {
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.Source(source, ALSourcef.Gain, volume);
+			}
+		}
+		
+		public void SetPitch(float pitch) {
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.Source(source, ALSourcef.Pitch, pitch);
+			}
+		}
+		
+		
 		public void Create( int numBuffers ) {
 			Create( numBuffers, null );
 		}
@@ -75,6 +90,7 @@ namespace SharpWave {
 			}
 			return true;
 		}
+		
 		
 		void SetupRaw( AudioChunk chunk ) {
 			Initalise( chunk );
