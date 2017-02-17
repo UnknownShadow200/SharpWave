@@ -13,21 +13,30 @@ namespace SharpWave {
 		uint[] bufferIDs;
 		public AudioContext context, shareContext;
 		ALFormat format;
+		float volume = 1, pitch = 1;
 		
 		static readonly object globalLock = new object();
 		
 		public void SetVolume(float volume) {
+			this.volume = volume;
+			if (source == uint.MaxValue) return;
+			
 			lock( globalLock ) {
 				context.MakeCurrent();
 				AL.Source(source, ALSourcef.Gain, volume);
 			}
+			CheckError( "SetVolume" );
 		}
 		
 		public void SetPitch(float pitch) {
+			this.pitch = pitch;
+			if (source == uint.MaxValue) return;
+			
 			lock( globalLock ) {
 				context.MakeCurrent();
 				AL.Source(source, ALSourcef.Pitch, pitch);
 			}
+			CheckError( "SetPitch" );
 		}
 		
 		
@@ -144,11 +153,12 @@ namespace SharpWave {
 		}
 		
 		void DisposeSource() {
-			if( source == uint.MaxValue )
-				return;
+			if( source == uint.MaxValue ) return;
+			
 			lock( globalLock ) {
 				context.MakeCurrent();
 				AL.DeleteSources( 1, ref source );
+				source = uint.MaxValue;
 			}
 			lock( globalLock ) {
 				context.MakeCurrent();
@@ -176,6 +186,9 @@ namespace SharpWave {
 			}
 			source = sourceU;
 			CheckError( "Initalise.GenSources" );
+			
+			if (volume != 1) SetVolume(volume);
+			if (pitch != 1)  SetPitch(pitch);
 			
 			fixed( uint* bufferPtr = bufferIDs ) {
 				lock( globalLock ) {

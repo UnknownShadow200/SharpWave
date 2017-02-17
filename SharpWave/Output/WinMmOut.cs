@@ -18,9 +18,13 @@ namespace SharpWave {
 		IntPtr headers;
 		IntPtr[] dataHandles;
 		int[] dataSizes;
+		float volume = 1, pitch = 1;
 		
 		// TODO: need to check device support
 		public void SetVolume(float volume) {
+			this.volume = volume;
+			if (devHandle == IntPtr.Zero) return;
+			
 			uint packed = (uint)(volume * 0xFFFF);
 			packed = (packed << 16) | packed; // left and right same
 			uint result = WinMmNative.waveOutSetVolume(devHandle, packed);
@@ -28,6 +32,9 @@ namespace SharpWave {
 		}
 		
 		public void SetPitch(float pitch) {
+			this.pitch = pitch;
+			if (devHandle == IntPtr.Zero) return;
+			
 			uint packed = (uint)(pitch * 0x1000);
 			uint result = WinMmNative.waveOutSetPitch(devHandle, packed);
 			CheckError( result, "SetPitch" );
@@ -110,6 +117,9 @@ namespace SharpWave {
 			uint result = WinMmNative.waveOutOpen( out devHandle, new UIntPtr( 0xFFFF ), ref format,
 			                                      IntPtr.Zero, UIntPtr.Zero, flags );
 			CheckError( result, "Open" );
+			
+			if (volume != 1) SetVolume(volume);
+			if (pitch != 1)  SetPitch(pitch);
 		}
 		
 		unsafe void UpdateBuffer( int index, AudioChunk chunk ) {
@@ -166,12 +176,12 @@ namespace SharpWave {
 		}
 		
 		void DisposeDevice() {
-			if( devHandle != IntPtr.Zero ) {
-				Console.WriteLine( "disposing device" );
-				uint result = WinMmNative.waveOutClose( devHandle );
-				CheckError( result, "Close" );
-				devHandle = IntPtr.Zero;
-			}
+			if( devHandle == IntPtr.Zero) return;
+			
+			Console.WriteLine( "disposing device" );
+			uint result = WinMmNative.waveOutClose( devHandle );
+			CheckError( result, "Close" );
+			devHandle = IntPtr.Zero;
 		}
 	}
 }
