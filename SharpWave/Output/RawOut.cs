@@ -10,7 +10,8 @@ namespace SharpWave {
 	/// <summary> Outputs raw audio to the given stream in the constructor. </summary>
 	public unsafe sealed partial class RawOut : IAudioOutput {
 		
-		public int Channels, BitsPerSample, Frequency;
+		LastChunk last;
+		public LastChunk Last { get { return last; } }
 		public readonly Stream OutStream;
 		public readonly bool LeaveOpen;
 		public Action OnGotMetadata;
@@ -27,9 +28,9 @@ namespace SharpWave {
 		public void Stop() { }
 		
 		public void PlayRaw( AudioChunk chunk ) {
-			Channels = chunk.Channels;
-			BitsPerSample = chunk.BitsPerSample;
-			Frequency = chunk.Frequency;
+			last.Channels = chunk.Channels;
+			last.BitsPerSample = chunk.BitsPerSample;
+			last.SampleRate = chunk.SampleRate;
 			if( OnGotMetadata != null )
 				OnGotMetadata();
 			

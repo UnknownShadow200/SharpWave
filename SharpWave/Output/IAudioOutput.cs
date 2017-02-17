@@ -27,5 +27,11 @@ namespace SharpWave {
 		void SetVolume(float volume);
 		
 		void SetPitch(float pitch);
+		
+		/// <summary> Details about the last audio chunk this player played. </summary>
+		/// <remarks> Playing sounds of same channels, bits per sample and sample rate avoid the costly device recreating operation.</remarks>
+		LastChunk Last { get; }
 	}
+	
+	public struct LastChunk { public int Channels, BitsPerSample, SampleRate; }
 }

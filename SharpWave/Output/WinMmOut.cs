@@ -18,6 +18,9 @@ namespace SharpWave {
 		IntPtr headers;
 		IntPtr[] dataHandles;
 		int[] dataSizes;
+		
+		LastChunk last;
+		public LastChunk Last { get { return last; } }
 		float volume = 1, pitch = 1;
 		
 		// TODO: need to check device support
@@ -87,15 +90,15 @@ namespace SharpWave {
 		bool pendingStop;
 		public void Stop() { pendingStop = true; }
 		
-		int lastFreq = -1, lastBits = -1, lastChannels = -1;
 		public void Initalise( AudioChunk first ) {
 			// Don't need to recreate device if it's the same.
-			if( lastBits == first.BitsPerSample && lastChannels == first.Channels && lastFreq == first.Frequency )
-				return;
+			if( last.BitsPerSample == first.BitsPerSample 
+			   && last.Channels    == first.Channels 
+			   && last.SampleRate  == first.SampleRate ) return;
 			
-			lastFreq = first.Frequency;
-			lastBits = first.BitsPerSample;
-			lastChannels = first.Channels;
+			last.SampleRate    = first.SampleRate;
+			last.BitsPerSample = first.BitsPerSample;
+			last.Channels      = first.Channels;
 			
 			Console.WriteLine( "init" );
 			DisposeDevice();
@@ -106,8 +109,8 @@ namespace SharpWave {
 			format.FormatTag = WaveFormatTag.Pcm;
 			format.BitsPerSample = (ushort)first.BitsPerSample;
 			format.BlockAlign = (ushort)(format.Channels * format.BitsPerSample / 8);
-			format.SampleRate = (uint)first.Frequency;
-			format.AverageBytesPerSecond = first.Frequency * format.BlockAlign;
+			format.SampleRate = (uint)first.SampleRate;
+			format.AverageBytesPerSecond = (int)format.SampleRate * format.BlockAlign;
 			
 			WaveOpenFlags flags = WaveOpenFlags.CallbackNull;
 			uint devices = WinMmNative.waveOutGetNumDevs();

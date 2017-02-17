@@ -12,7 +12,7 @@ namespace SharpWave.Codecs {
 	}
 	
 	public sealed class AudioChunk {
-		public int Frequency;
+		public int SampleRate;
 		public int Channels;
 		public int BitsPerSample;
 		public byte[] Data;

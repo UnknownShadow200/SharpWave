@@ -11,10 +11,13 @@ namespace SharpWave {
 	public unsafe sealed partial class OpenALOut : IAudioOutput {
 		uint source = uint.MaxValue;
 		uint[] bufferIDs;
-		public AudioContext context, shareContext;
+		
+		AudioContext context, shareContext;
 		ALFormat format;
 		float volume = 1, pitch = 1;
 		
+		LastChunk last;
+		public LastChunk Last { get { return last; } }
 		static readonly object globalLock = new object();
 		
 		public void SetVolume(float volume) {
@@ -124,7 +127,7 @@ namespace SharpWave {
 				lock( globalLock ) {
 					context.MakeCurrent();
 					AL.BufferData( bufferId, format, (IntPtr)chunkPtr,
-					              chunk.Length, chunk.Frequency );
+					              chunk.Length, chunk.SampleRate );
 				}
 			}
 		}
@@ -167,16 +170,16 @@ namespace SharpWave {
 			CheckError( "Initalise.DeleteBuffers" );
 		}
 		
-		int lastFreq = -1, lastBits = -1, lastChannels = -1;
 		void Initalise( AudioChunk first ) {
 			format = GetALFormat( first.Channels, first.BitsPerSample );
 			// Don't need to recreate device if it's the same.
-			if( lastBits == first.BitsPerSample && lastChannels == first.Channels && lastFreq == first.Frequency )
-				return;
+			if( last.BitsPerSample == first.BitsPerSample
+			   && last.Channels    == first.Channels
+			   && last.SampleRate  == first.SampleRate ) return;
 			
-			lastFreq = first.Frequency;
-			lastBits = first.BitsPerSample;
-			lastChannels = first.Channels;
+			last.SampleRate    = first.SampleRate;
+			last.BitsPerSample = first.BitsPerSample;
+			last.Channels      = first.Channels;
 			
 			DisposeSource();
 			uint sourceU = 0;

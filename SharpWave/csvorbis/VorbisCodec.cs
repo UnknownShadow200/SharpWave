@@ -50,7 +50,7 @@ namespace SharpWave.Codecs.Vorbis {
 				
 				Buffer.BlockCopy( chunk.Data, 0, rawPcm, rawIndex, chunk.Length );
 				rawIndex += chunk.Length;
-				if( rawIndex >= (rawChunk.Frequency / 4) ) {
+				if( rawIndex >= (rawChunk.SampleRate / 4) ) {
 					rawChunk.BytesUsed = rawIndex;
 					rawIndex = 0;
 					yield return rawChunk;
@@ -63,10 +63,10 @@ namespace SharpWave.Codecs.Vorbis {
 		}
 		
 		void InitRaw( AudioChunk chunk ) {
-			rawPcm = new byte[chunk.Frequency / 4];
+			rawPcm = new byte[chunk.SampleRate / 4];
 			rawChunk.BitsPerSample = chunk.BitsPerSample;
 			rawChunk.Channels = chunk.Channels;
-			rawChunk.Frequency = chunk.Frequency;
+			rawChunk.SampleRate = chunk.SampleRate;
 			rawChunk.Data = rawPcm;
 		}
 		
@@ -249,7 +249,7 @@ namespace SharpWave.Codecs.Vorbis {
 									}
 									
 									chunk.Channels = vi.channels;
-									chunk.Frequency = vi.rate;
+									chunk.SampleRate = vi.rate;
 									chunk.Data = convbuffer;
 									chunk.BytesUsed = 2 * vi.channels * bout;
 									vd.synthesis_read(bout);
