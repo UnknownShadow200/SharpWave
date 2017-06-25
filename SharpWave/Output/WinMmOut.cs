@@ -21,28 +21,9 @@ namespace SharpWave {
 		
 		LastChunk last;
 		public LastChunk Last { get { return last; } }
-		float volume = 1, pitch = 1;
-		
-		// TODO: need to check device support
-		public void SetVolume(float volume) {
-			this.volume = volume;
-			if (devHandle == IntPtr.Zero) return;
-			
-			uint packed = (uint)(volume * 0xFFFF);
-			packed = (packed << 16) | packed; // left and right same
-			uint result = WinMmNative.waveOutSetVolume(devHandle, packed);
-			CheckError( result, "SetVolume" );
-		}
-		
-		public void SetPitch(float pitch) {
-			this.pitch = pitch;
-			if (devHandle == IntPtr.Zero) return;
-			
-			uint packed = (uint)(pitch * 0x1000);
-			uint result = WinMmNative.waveOutSetPitch(devHandle, packed);
-			CheckError( result, "SetPitch" );
-		}
-		
+		int volumePercent = 100;
+
+		public void SetVolume(float volume) { volumePercent = (int)(volume * 100); }
 
 		public void Create( int numBuffers ) {
 			headers = Marshal.AllocHGlobal( waveHeaderSize * numBuffers );
@@ -92,8 +73,8 @@ namespace SharpWave {
 		
 		public void Initalise( AudioChunk first ) {
 			// Don't need to recreate device if it's the same.
-			if( last.BitsPerSample == first.BitsPerSample 
-			   && last.Channels    == first.Channels 
+			if( last.BitsPerSample == first.BitsPerSample
+			   && last.Channels    == first.Channels
 			   && last.SampleRate  == first.SampleRate ) return;
 			
 			last.SampleRate    = first.SampleRate;
@@ -120,9 +101,6 @@ namespace SharpWave {
 			uint result = WinMmNative.waveOutOpen( out devHandle, new UIntPtr( 0xFFFF ), ref format,
 			                                      IntPtr.Zero, UIntPtr.Zero, flags );
 			CheckError( result, "Open" );
-			
-			if (volume != 1) SetVolume(volume);
-			if (pitch != 1)  SetPitch(pitch);
 		}
 		
 		unsafe void UpdateBuffer( int index, AudioChunk chunk ) {
@@ -133,6 +111,7 @@ namespace SharpWave {
 			fixed( byte* src = data ) {
 				byte* chunkPtr = src + chunk.BytesOffset;
 				MemUtils.memcpy( (IntPtr)chunkPtr, handle, chunk.Length );
+				ApplyVolume( handle, chunk );
 			}
 			
 			header.DataBuffer = handle;
@@ -145,6 +124,16 @@ namespace SharpWave {
 			CheckError( result, "PrepareHeader" );
 			result = WinMmNative.waveOutWrite( devHandle, address, (uint)waveHeaderSize );
 			CheckError( result, "Write" );
+		}
+		
+		unsafe void ApplyVolume( IntPtr handle, AudioChunk chunk ) {
+			if (volumePercent == 100) return;
+			
+			if (chunk.BitsPerSample == 16) {
+				VolumeMixer.Mix16((short*)handle, chunk.Length / sizeof(short), volumePercent);
+			} else if (chunk.BitsPerSample == 8) {
+				VolumeMixer.Mix8((byte*)handle, chunk.Length, volumePercent);
+			}
 		}
 		
 		void CheckBufferSize( int index, int chunkDataSize ) {

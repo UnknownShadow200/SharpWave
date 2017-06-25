@@ -65,7 +65,5 @@ namespace SharpWave {
 		}
 		
 		public void SetVolume(float volume) { }
-		
-		public void SetPitch(float pitch) { }
 	}
 }

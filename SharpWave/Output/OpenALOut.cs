@@ -14,7 +14,7 @@ namespace SharpWave {
 		
 		AudioContext context, shareContext;
 		ALFormat format;
-		float volume = 1, pitch = 1;
+		float volume = 1;
 		
 		LastChunk last;
 		public LastChunk Last { get { return last; } }
@@ -29,17 +29,6 @@ namespace SharpWave {
 				AL.Source(source, ALSourcef.Gain, volume);
 			}
 			CheckError( "SetVolume" );
-		}
-		
-		public void SetPitch(float pitch) {
-			this.pitch = pitch;
-			if (source == uint.MaxValue) return;
-			
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.Source(source, ALSourcef.Pitch, pitch);
-			}
-			CheckError( "SetPitch" );
 		}
 		
 		
@@ -188,10 +177,8 @@ namespace SharpWave {
 				AL.GenSources( 1, out sourceU );
 			}
 			source = sourceU;
-			CheckError( "Initalise.GenSources" );
-			
+			CheckError( "Initalise.GenSources" );			
 			if (volume != 1) SetVolume(volume);
-			if (pitch != 1)  SetPitch(pitch);
 			
 			fixed( uint* bufferPtr = bufferIDs ) {
 				lock( globalLock ) {

@@ -82,6 +82,7 @@
     <Compile Include="Output\OpenALOut.Stream.cs" />
     <Compile Include="Output\WinMmOut.Stream.cs" />
     <Compile Include="Output\IAudioOutput.cs" />
+    <Compile Include="VolumeMixer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="csvorbis\Ogg" />
