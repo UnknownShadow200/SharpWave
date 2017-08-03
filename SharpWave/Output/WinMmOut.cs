@@ -97,8 +97,8 @@ namespace SharpWave {
 			uint devices = WinMmNative.waveOutGetNumDevs();
 			if( devices == 0 )
 				throw new InvalidOperationException( "No audio devices found" );
-			
-			uint result = WinMmNative.waveOutOpen( out devHandle, new UIntPtr( 0xFFFF ), ref format,
+
+			uint result = WinMmNative.waveOutOpen( out devHandle, (IntPtr)(-1), ref format,
 			                                      IntPtr.Zero, UIntPtr.Zero, flags );
 			CheckError( result, "Open" );
 		}

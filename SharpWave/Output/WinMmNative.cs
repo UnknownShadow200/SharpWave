@@ -13,7 +13,7 @@ namespace SharpWave {
 		internal static extern uint waveOutGetErrorText( uint error, StringBuilder buffer, uint bufferLen );
 
 		[DllImport( "winmm.dll", SetLastError = true, CharSet = CharSet.Auto ), SuppressUnmanagedCodeSecurity]
-		internal static extern uint waveOutOpen( out IntPtr handle, UIntPtr deviceID, ref WaveFormatEx format,
+		internal static extern uint waveOutOpen( out IntPtr handle, IntPtr deviceID, ref WaveFormatEx format,
 		                                        IntPtr callback, UIntPtr callbackInstance, WaveOpenFlags flags );
 		
 		[DllImport( "winmm.dll", SetLastError = true ), SuppressUnmanagedCodeSecurity]
