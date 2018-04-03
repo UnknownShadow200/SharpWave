@@ -23,7 +23,10 @@ namespace SharpWave {
 				if( !chunks.MoveNext() ) break;
 				
 				AudioChunk chunk = chunks.Current;
-				if( i == 0 ) Initalise( chunk );
+				if( i == 0 ) {
+					Initalise( chunk );
+					SetData( chunk );
+				}
 				
 				UpdateBuffer( bufferIDs[i], chunk );
 				CheckError( "PlayStreaming.UpdateBuffer (first)" );

@@ -55,7 +55,9 @@ namespace SharpWave {
 		}
 		
 		public void PlayRaw( AudioChunk chunk ) {
-			SetupRaw( chunk );
+			Initalise( chunk );
+			SetData( chunk );
+			
 			int state;
 			while( !pendingStop ) {
 				AL.GetSource( source, ALGetSourcei.SourceState, out state );
@@ -69,7 +71,8 @@ namespace SharpWave {
 		
 		bool playingAsync;
 		public void PlayRawAsync( AudioChunk chunk ) {
-			SetupRaw( chunk );
+			Initalise( chunk );
+			SetData( chunk );
 			playingAsync = true;
 		}
 		
@@ -92,9 +95,7 @@ namespace SharpWave {
 			return true;
 		}
 		
-		
-		void SetupRaw( AudioChunk chunk ) {
-			Initalise( chunk );
+		void SetData( AudioChunk chunk ) {
 			UpdateBuffer( bufferIDs[0], chunk );
 			CheckError( "SetupRaw.BufferData" );
 			// TODO: Use AL.Source(source, ALSourcei.Buffer, buffer);
@@ -159,7 +160,7 @@ namespace SharpWave {
 			CheckError( "Initalise.DeleteBuffers" );
 		}
 		
-		void Initalise( AudioChunk first ) {
+		public void Initalise( AudioChunk first ) {
 			format = GetALFormat( first.Channels, first.BitsPerSample );
 			// Don't need to recreate device if it's the same.
 			if( last.BitsPerSample == first.BitsPerSample
@@ -177,7 +178,7 @@ namespace SharpWave {
 				AL.GenSources( 1, out sourceU );
 			}
 			source = sourceU;
-			CheckError( "Initalise.GenSources" );			
+			CheckError( "Initalise.GenSources" );
 			if (volume != 1) SetVolume(volume);
 			
 			fixed( uint* bufferPtr = bufferIDs ) {
@@ -200,6 +201,44 @@ namespace SharpWave {
 					case 1: return GetFormatFor( ALFormat.Mono8, bitsPerSample );
 					case 2: return GetFormatFor( ALFormat.Stereo8, bitsPerSample );
 					default: throw new NotSupportedException( "Unsupported number of channels: " + channels );
+			}
+		}
+		
+		public void SetListenerPos(float x, float y, float z) {
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.Listener(ALListener3f.Position, x, y, z);
+			}
+		}
+		
+		public unsafe void SetListenerDir(float yaw) {
+			lock( globalLock ) {
+				context.MakeCurrent();
+				float* values = stackalloc float[6];
+				values[0] = (float)Math.Sin(yaw);
+				values[1] = 0.0f;
+				values[2] = (float)Math.Cos(yaw);
+				values[3] = 0.0f;
+				values[4] = 1.0f;
+				values[5] = 0.0f;
+				AL.Listener(ALListenerfv.Orientation, values);
+			}
+		}
+		
+		public void SetSoundPos(float x, float y, float z) {
+			lock( globalLock ) {
+				context.MakeCurrent();
+				AL.Source(source, ALSource3f.Position, x, y, z);
+			}
+		}
+
+		public void SetSoundGain(float gain) {
+			lock( globalLock ) {
+				context.MakeCurrent();
+				// I have no idea ??
+				AL.DistanceModel(ALDistanceModel.InverseDistance);
+				AL.Source(source, ALSourcef.ReferenceDistance, 0.0f);
+				AL.Source(source, ALSourcef.MaxDistance, 1.0f);
 			}
 		}
 	}

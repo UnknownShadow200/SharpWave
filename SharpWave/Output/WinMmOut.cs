@@ -175,5 +175,10 @@ namespace SharpWave {
 			CheckError( result, "Close" );
 			devHandle = IntPtr.Zero;
 		}
+		
+		public void SetListenerPos(float x, float y, float z) { }		
+		public void SetListenerDir(float yaw) { }
+		public void SetSoundPos(float x, float y, float z) { }
+		public void SetSoundGain(float gain) { }
 	}
 }

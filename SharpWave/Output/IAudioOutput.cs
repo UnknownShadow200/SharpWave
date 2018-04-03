@@ -15,6 +15,8 @@ namespace SharpWave {
 		/// <summary> Progressively streams and plays data from the given container. </summary>
 		void PlayStreaming( IMediaContainer container );
 		
+		void Initalise( AudioChunk chunk );
+		
 		/// <summary> Plays an entire single chunk of PCM audio. </summary>
 		void PlayRaw( AudioChunk chunk );
 		
@@ -29,6 +31,11 @@ namespace SharpWave {
 		/// <summary> Details about the last audio chunk this player played. </summary>
 		/// <remarks> Playing sounds of same channels, bits per sample and sample rate avoid the costly device recreating operation.</remarks>
 		LastChunk Last { get; }
+		
+		void SetListenerPos(float x, float y, float z);
+		void SetListenerDir(float yaw);
+		void SetSoundPos(float x, float y, float z);
+		void SetSoundGain(float gain);
 	}
 	
 	public struct LastChunk { public int Channels, BitsPerSample, SampleRate; }

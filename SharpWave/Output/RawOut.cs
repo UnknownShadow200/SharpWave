@@ -27,6 +27,8 @@ namespace SharpWave {
 		
 		public void Stop() { }
 		
+		public void Initalise( AudioChunk chunk ) { }
+		
 		public void PlayRaw( AudioChunk chunk ) {
 			last.Channels = chunk.Channels;
 			last.BitsPerSample = chunk.BitsPerSample;
@@ -64,6 +66,10 @@ namespace SharpWave {
 			OutStream.Close();
 		}
 		
-		public void SetVolume(float volume) { }
+		public void SetVolume(float volume) { }				
+		public void SetListenerPos(float x, float y, float z) { }		
+		public void SetListenerDir(float yaw) { }
+		public void SetSoundPos(float x, float y, float z) { }
+		public void SetSoundGain(float gain) { }
 	}
 }

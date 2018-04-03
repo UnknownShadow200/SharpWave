@@ -52,16 +52,24 @@ namespace OpenTK.Audio.OpenAL
 		SourceType = 0x1027,
 	}
 	
-	    ///<summary>A list of valid 32-bit Float Source/GetSource parameters</summary>
-    public enum ALSourcef : int
-    {
-        ///<summary>Specify the pitch to be applied, either at Source, or on mixer results, at Listener. Range: [0.5f - 2.0f] Default: 1.0f</summary>
-        Pitch = 0x1003,
+	///<summary>A list of valid 32-bit Float Source/GetSource parameters</summary>
+	public enum ALSourcef : int
+	{
+		///<summary>Specify the pitch to be applied, either at Source, or on mixer results, at Listener. Range: [0.5f - 2.0f] Default: 1.0f</summary>
+		Pitch = 0x1003,
 
-        ///<summary>Indicate the gain (volume amplification) applied. Type: float. Range: [0.0f - ? ] A value of 1.0 means un-attenuated/unchanged. Each division by 2 equals an attenuation of -6dB. Each multiplicaton with 2 equals an amplification of +6dB. A value of 0.0f is meaningless with respect to a logarithmic scale; it is interpreted as zero volume - the channel is effectively disabled.</summary>
-        Gain = 0x100A,
+		///<summary>Indicate the gain (volume amplification) applied. Type: float. Range: [0.0f - ? ] A value of 1.0 means un-attenuated/unchanged. Each division by 2 equals an attenuation of -6dB. Each multiplicaton with 2 equals an amplification of +6dB. A value of 0.0f is meaningless with respect to a logarithmic scale; it is interpreted as zero volume - the channel is effectively disabled.</summary>
+		Gain = 0x100A,		
+		
+		///<summary>Source specific reference distance. Type: float Range: [0.0f - float.PositiveInfinity] At 0.0f, no distance attenuation occurs. Type: float Default: 1.0f.</summary>
+        ReferenceDistance = 0x1020,
 
-    }
+        ///<summary>Indicate distance above which Sources are not attenuated using the inverse clamped distance model. Default: float.PositiveInfinity Type: float Range: [0.0f - float.PositiveInfinity]</summary>
+        MaxDistance = 0x1023,
+
+        ///<summary>Source specific rolloff factor. Type: float Range: [0.0f - float.PositiveInfinity]</summary>
+        RolloffFactor = 0x1021,
+	}
 
 	///<summary>Source state information, can be retrieved by AL.Source() with ALSourcei.SourceState.</summary>
 	public enum ALSourceState : int
@@ -155,6 +163,41 @@ namespace OpenTK.Audio.OpenAL
 	{
 		///<summary>Bypasses all distance attenuation calculation for all Sources.</summary>
 		None = 0,
+		
+		 ///<summary>InverseDistance is equivalent to the IASIG I3DL2 model with the exception that ALSourcef.ReferenceDistance does not imply any clamping.</summary>
+        InverseDistance = 0xD001,
+
+        ///<summary>InverseDistanceClamped is the IASIG I3DL2 model, with ALSourcef.ReferenceDistance indicating both the reference distance and the distance below which gain will be clamped.</summary>
+        InverseDistanceClamped = 0xD002,
 	}
 
+	///<summary>A list of valid Math.Vector3 Listener/GetListener parameters</summary>
+	public enum ALListener3f : int
+	{
+		///<summary>Specify the current location in three dimensional space. OpenAL, like OpenGL, uses a right handed coordinate system, where in a frontal default view X (thumb) points right, Y points up (index finger), and Z points towards the viewer/camera (middle finger). To switch from a left handed coordinate system, flip the sign on the Z coordinate. Listener position is always in the world coordinate system.</summary>
+		Position = 0x1004,
+
+		///<summary>Specify the current velocity in three dimensional space.</summary>
+		Velocity = 0x1006,
+	}
+
+	///<summary>A list of valid float[] Listener/GetListener parameters</summary>
+	public enum ALListenerfv : int
+	{
+		///<summary>Indicate Listener orientation. Expects two Vector3, At followed by Up.</summary>
+		Orientation = 0x100F,
+	}
+	
+	///<summary>A list of valid Math.Vector3 Source/GetSource parameters</summary>
+	public enum ALSource3f : int
+	{
+		///<summary>Specify the current location in three dimensional space. OpenAL, like OpenGL, uses a right handed coordinate system, where in a frontal default view X (thumb) points right, Y points up (index finger), and Z points towards the viewer/camera (middle finger). To switch from a left handed coordinate system, flip the sign on the Z coordinate. Listener position is always in the world coordinate system.</summary>
+		Position = 0x1004,
+
+		///<summary>Specify the current velocity in three dimensional space.</summary>
+		Velocity = 0x1006,
+
+		///<summary>Specify the current direction vector.</summary>
+		Direction = 0x1005,
+	}
 }

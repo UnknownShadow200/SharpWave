@@ -28,9 +28,15 @@ namespace OpenTK.Audio.OpenAL {
 		
 		[DllImport(Lib, EntryPoint = "alDistanceModel", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void DistanceModel(ALDistanceModel param);
+		
+		[DllImport(Lib, EntryPoint = "alListener3f", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
+		public static extern void Listener(ALListener3f param, float value1, float value2, float value3);
+		
+		[DllImport(Lib, EntryPoint = "alListenerfv", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
+		public static extern void Listener(ALListenerfv param, float* ValueType);
 
 		[DllImport(Lib, EntryPoint = "alGetError", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
-		public static extern ALError GetError();		
+		public static extern ALError GetError();
 
 		[DllImport(Lib, EntryPoint = "alIsExtensionPresent", ExactSpelling = true, CallingConvention = Style, CharSet = CharSet.Ansi), SuppressUnmanagedCodeSecurity]
 		public static extern bool IsExtensionPresent([In] string extname);
@@ -61,9 +67,12 @@ namespace OpenTK.Audio.OpenAL {
 		[DllImport(Lib, EntryPoint = "alSourcei", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void Source(uint sid, ALSourcei param, uint value);
 
-		[DllImport(Lib, EntryPoint = "alSourcef", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]		
+		[DllImport(Lib, EntryPoint = "alSourcef", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void Source(uint sid, ALSourcef param, float value);
 
+		[DllImport(Lib, EntryPoint = "alSource3f", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
+		public static extern void Source(uint sid, ALSource3f param, float x, float y, float z);
+		
 		[DllImport(Lib, EntryPoint = "alGetSourcei", ExactSpelling = true, CallingConvention = Style), SuppressUnmanagedCodeSecurity]
 		public static extern void GetSource(uint sid, ALGetSourcei param, [Out] out int value);
 
