@@ -1,42 +1,94 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using SharpWave.Codecs;
 using SharpWave.Containers;
 
 namespace SharpWave {
 	
-	public interface IAudioOutput : IDisposable {
+	public struct AudioFormat { 
+		public int Channels, BitsPerSample, SampleRate;
 		
-		void Create( int numBuffers );
-		
-		void Create( int numBuffers, IAudioOutput shared );
-		
-		void Stop();
-		
-		/// <summary> Progressively streams and plays data from the given container. </summary>
-		void PlayStreaming( IMediaContainer container );
-		
-		void Initalise( AudioChunk chunk );
-		
-		/// <summary> Plays an entire single chunk of PCM audio. </summary>
-		void PlayRaw( AudioChunk chunk );
-		
-		/// <summary> Plays an entire single chunk of PCM audio asynchronously. </summary>
-		void PlayRawAsync( AudioChunk chunk );
-		
-		/// <summary> Whether the last single chunk PCM audio chunk played asynchronously has finished playing. </summary>
-		bool DoneRawAsync();
-		
-		void SetVolume(float volume);
-		
-		/// <summary> Details about the last audio chunk this player played. </summary>
-		/// <remarks> Playing sounds of same channels, bits per sample and sample rate avoid the costly device recreating operation.</remarks>
-		LastChunk Last { get; }
-		
-		void SetListenerPos(float x, float y, float z);
-		void SetListenerDir(float yaw);
-		void SetSoundPos(float x, float y, float z);
-		void SetSoundGain(float gain);
+		public bool Equals(AudioFormat a) {
+			return Channels == a.Channels && BitsPerSample == a.BitsPerSample && SampleRate == a.SampleRate;
+		}
 	}
 	
-	public struct LastChunk { public int Channels, BitsPerSample, SampleRate; }
+	public delegate void Action();
+	
+	public abstract class IAudioOutput : IDisposable {
+		public abstract void Create(int numBuffers);
+		public abstract void SetVolume(float volume);
+		public abstract void Dispose();
+		
+		public AudioFormat Format;
+		public abstract void SetFormat(AudioFormat format);
+		public abstract void PlayData(int index, AudioChunk chunk);
+		public abstract bool IsCompleted(int index);
+		public abstract bool IsFinished();
+		
+		public int NumBuffers;
+		public bool pendingStop;
+		public void PlayStreaming(IMediaContainer container) {
+			container.ReadMetadata();
+			ICodec codec = container.GetAudioCodec();
+			AudioFormat format = codec.ReadHeader(container);
+			
+			SetFormat(format);
+			IEnumerator<AudioChunk> chunks =
+				codec.StreamData(container).GetEnumerator();
+			
+			bool noData = false;
+			for (;;) {
+				// Have any of the buffers finished playing
+				if (noData && IsFinished()) return;
+
+				int next = -1;
+				for (int i = 0; i < NumBuffers; i++) {
+					if (IsCompleted(i)) { next = i; break; }
+				}
+
+				if (next == -1) {
+				} else if (pendingStop || !chunks.MoveNext()) {
+					noData = true;
+				} else {
+					PlayData(next, chunks.Current);
+				}
+				Thread.Sleep(1);
+			}
+		}
+	}
+	
+	/// <summary> Outputs raw audio to the given stream in the constructor. </summary>
+	public unsafe sealed partial class RawOut : IAudioOutput {
+		public readonly Stream OutStream;
+		public readonly bool LeaveOpen;
+		public Action OnGotMetadata;
+		
+		public RawOut(FileStream outStream, bool leaveOpen) {
+			OutStream = outStream;
+			LeaveOpen = leaveOpen;
+		}
+		
+		public override void Create(int numBuffers) { NumBuffers = numBuffers; }
+		public override void SetVolume(float volume) { }
+		
+		public override void SetFormat(AudioFormat format) {
+			Format = format;
+			if (OnGotMetadata != null) OnGotMetadata();
+		}
+		
+		public override void PlayData(int index, AudioChunk chunk) {
+			OutStream.Write(chunk.Data, 0, chunk.Length);
+		}
+		
+		public override void Dispose() {
+			if (LeaveOpen) return;
+			OutStream.Close();
+		}
+		
+		public override bool IsCompleted(int index) { return true; }
+		public override bool IsFinished() { return true; }
+	}
 }

@@ -45,10 +45,6 @@ namespace csvorbis
 		internal long sequence;
 		internal DspState vd; // For read-only access of configuration
 
-		public Block(DspState vd) {
-			this.vd = vd;
-		}
-
 		public void init(DspState vd) {
 			this.vd = vd;
 		}

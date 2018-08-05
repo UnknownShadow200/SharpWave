@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using OpenTK.Audio;
 using OpenTK.Audio.OpenAL;
 using SharpWave.Codecs;
@@ -8,238 +7,218 @@ namespace SharpWave {
 	
 	/// <summary> Outputs audio to the default sound playback device using the
 	/// native OpenAL library. Cross platform. </summary>
-	public unsafe sealed partial class OpenALOut : IAudioOutput {
+	public unsafe sealed class OpenALOut : IAudioOutput {
 		uint source = uint.MaxValue;
 		uint[] bufferIDs;
+		bool[] completed;
 		
-		AudioContext context, shareContext;
-		ALFormat format;
+		ALFormat dataFormat;
 		float volume = 1;
+		static readonly object contextLock = new object();
 		
-		LastChunk last;
-		public LastChunk Last { get { return last; } }
-		static readonly object globalLock = new object();
-		
-		public void SetVolume(float volume) {
+		public override void SetVolume(float volume) {
 			this.volume = volume;
 			if (source == uint.MaxValue) return;
 			
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.Source(source, ALSourcef.Gain, volume);
+			lock (contextLock) {
+				MakeContextCurrent();
+				AL.alSourcef(source, ALSourcef.Gain, volume);
+				CheckError("SetVolume");
 			}
-			CheckError( "SetVolume" );
 		}
 		
-		
-		public void Create( int numBuffers ) {
-			Create( numBuffers, null );
-		}
-		
-		public void Create( int numBuffers, IAudioOutput share ) {
+		public override void Create(int numBuffers) {
 			bufferIDs = new uint[numBuffers];
-			OpenALOut alOut = share as OpenALOut;
+			completed = new bool[numBuffers];
 			
-			if( alOut == null ) {
-				context = new AudioContext();
-			} else {
-				context = alOut.context;
-				shareContext = context;
+			for (int i = 0; i < numBuffers; i++) {
+				completed[i] = true;
+			}
+			NumBuffers = numBuffers;
+			
+			lock (contextLock) {
+				if (context == IntPtr.Zero) CreateContext();
+				contextRefs++;
+
+				MakeContextCurrent();
+				AL.alDistanceModel(ALDistanceModel.None);
+			}
+			Console.WriteLine("al context:" + context);
+		}
+		
+		public override bool IsCompleted(int index) {
+			int processed = 0;
+			uint buffer = 0;			
+			lock (contextLock) {
+				MakeContextCurrent();
+				
+				AL.alGetSourcei(source, ALGetSourcei.BuffersProcessed, &processed);
+				CheckError("GetSources");			
+				if (processed == 0) return completed[index];
+				
+				AL.alSourceUnqueueBuffers(source, 1, &buffer);
+				CheckError("SourceUnqueueBuffers");
 			}
 			
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.DistanceModel( ALDistanceModel.None );
+			for (int i = 0; i < NumBuffers; i++) {
+				if (bufferIDs[i] == buffer) completed[i] = true;
 			}
-			Console.WriteLine( "al context:" + context );
+			return completed[index];
 		}
 		
-		public void PlayRaw( AudioChunk chunk ) {
-			Initalise( chunk );
-			SetData( chunk );
+		public override bool IsFinished() {
+			for (int i = 0; i < NumBuffers; i++) {
+				if (!IsCompleted(i)) return false;
+			}
 			
-			int state;
-			while( !pendingStop ) {
-				AL.GetSource( source, ALGetSourcei.SourceState, out state );
-				if( (ALSourceState)state != ALSourceState.Playing )
-					break;
-				Thread.Sleep( 1 );
+			int state = 0;
+			lock (contextLock) {
+				MakeContextCurrent();
+				AL.alGetSourcei(source, ALGetSourcei.SourceState, &state);
+				return state == (int)ALSourceState.Playing;
 			}
-			uint bufferId = 0;
-			AL.SourceUnqueueBuffers( source, 1, ref bufferId );
 		}
 		
-		bool playingAsync;
-		public void PlayRawAsync( AudioChunk chunk ) {
-			Initalise( chunk );
-			SetData( chunk );
-			playingAsync = true;
-		}
-		
-		public bool DoneRawAsync() {
-			if( !playingAsync ) return true;
-			int state;
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.GetSource( source, ALGetSourcei.SourceState, out state );
-			}
-			if( (ALSourceState)state == ALSourceState.Playing )
-				return false;
-			
-			playingAsync = false;
-			uint bufferId = 0;
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.SourceUnqueueBuffers( source, 1, ref bufferId );
-			}
-			return true;
-		}
-		
-		void SetData( AudioChunk chunk ) {
-			UpdateBuffer( bufferIDs[0], chunk );
-			CheckError( "SetupRaw.BufferData" );
-			// TODO: Use AL.Source(source, ALSourcei.Buffer, buffer);
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.SourceQueueBuffers( source, 1, bufferIDs );
-			}
-			CheckError( "SetupRaw.QueueBuffers" );
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.SourcePlay( source );
-			}
-			CheckError( "SetupRaw.SourcePlay" );
-		}
-		
-		unsafe void UpdateBuffer( uint bufferId, AudioChunk chunk ) {
-			fixed( byte* src = chunk.Data ) {
-				byte* chunkPtr = src + chunk.BytesOffset;
-				lock( globalLock ) {
-					context.MakeCurrent();
-					AL.BufferData( bufferId, format, (IntPtr)chunkPtr,
-					              chunk.Length, chunk.SampleRate );
+		public override void PlayData(int index, AudioChunk chunk) {
+			fixed (byte* data = chunk.Data) {
+				uint buffer = bufferIDs[index];
+				
+				lock (contextLock) {
+					MakeContextCurrent();
+					AL.alBufferData(buffer, dataFormat, (IntPtr)data,
+					              chunk.Length, Format.SampleRate);
+					CheckError("BufferData");
+					
+					AL.alSourceQueueBuffers(source, 1, &buffer);
+					CheckError("QueueBuffers");				
+					AL.alSourcePlay(source);
+					CheckError("SourcePlay");
 				}
 			}
 		}
 		
 		void CheckError(string location) {
-			ALError error;
-			lock( globalLock ) {
-				context.MakeCurrent();
-				error = AL.GetError();
-			}
-			
-			if( error != ALError.NoError ) {
-				throw new InvalidOperationException( "OpenAL error: " + error + " at " + location);
-			}
-		}
-		
-		bool pendingStop;
-		public void Stop() {
-			pendingStop = true;
-		}
-		
-		public void Dispose() {
-			DisposeSource();
-			if( shareContext == null && context != null )
-				context.Dispose();
-		}
-		
-		void DisposeSource() {
-			if( source == uint.MaxValue ) return;
-			
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.DeleteSources( 1, ref source );
-				source = uint.MaxValue;
-			}
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.DeleteBuffers( bufferIDs );
-			}
-			CheckError( "Initalise.DeleteBuffers" );
-		}
-		
-		public void Initalise( AudioChunk first ) {
-			format = GetALFormat( first.Channels, first.BitsPerSample );
-			// Don't need to recreate device if it's the same.
-			if( last.BitsPerSample == first.BitsPerSample
-			   && last.Channels    == first.Channels
-			   && last.SampleRate  == first.SampleRate ) return;
-			
-			last.SampleRate    = first.SampleRate;
-			last.BitsPerSample = first.BitsPerSample;
-			last.Channels      = first.Channels;
-			
-			DisposeSource();
-			uint sourceU = 0;
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.GenSources( 1, out sourceU );
-			}
-			source = sourceU;
-			CheckError( "Initalise.GenSources" );
-			if (volume != 1) SetVolume(volume);
-			
-			fixed( uint* bufferPtr = bufferIDs ) {
-				lock( globalLock ) {
-					context.MakeCurrent();
-					AL.GenBuffers( bufferIDs.Length, bufferPtr );
-				}
-			}
-			CheckError( "Initalise.GenBuffers" );
-		}
-		
-		static ALFormat GetFormatFor( ALFormat baseFormat, int bitsPerSample ) {
-			if( bitsPerSample == 8 ) return baseFormat;
-			if( bitsPerSample == 16 ) return (ALFormat)(baseFormat + 1);
-			throw new NotSupportedException( "Unsupported bits per sample: " + bitsPerSample );
-		}
-		
-		static ALFormat GetALFormat( int channels, int bitsPerSample ) {
-			switch( channels ) {
-					case 1: return GetFormatFor( ALFormat.Mono8, bitsPerSample );
-					case 2: return GetFormatFor( ALFormat.Stereo8, bitsPerSample );
-					default: throw new NotSupportedException( "Unsupported number of channels: " + channels );
-			}
-		}
-		
-		public void SetListenerPos(float x, float y, float z) {
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.Listener(ALListener3f.Position, x, y, z);
-			}
-		}
-		
-		public unsafe void SetListenerDir(float yaw) {
-			lock( globalLock ) {
-				context.MakeCurrent();
-				float* values = stackalloc float[6];
-				values[0] = (float)Math.Sin(yaw);
-				values[1] = 0.0f;
-				values[2] = (float)Math.Cos(yaw);
-				values[3] = 0.0f;
-				values[4] = 1.0f;
-				values[5] = 0.0f;
-				AL.Listener(ALListenerfv.Orientation, values);
-			}
-		}
-		
-		public void SetSoundPos(float x, float y, float z) {
-			lock( globalLock ) {
-				context.MakeCurrent();
-				AL.Source(source, ALSource3f.Position, x, y, z);
+			ALError error = AL.alGetError();
+			if (error != ALError.NoError) {
+				throw new InvalidOperationException("OpenAL error: " + error + " at " + location);
 			}
 		}
 
-		public void SetSoundGain(float gain) {
-			lock( globalLock ) {
-				context.MakeCurrent();
-				// I have no idea ??
-				AL.DistanceModel(ALDistanceModel.InverseDistance);
-				AL.Source(source, ALSourcef.ReferenceDistance, 0.0f);
-				AL.Source(source, ALSourcef.MaxDistance, 1.0f);
+		public override void Dispose() {
+			DisposeSource();
+			lock (contextLock) {
+				contextRefs--;
+				if (contextRefs == 0) DestroyContext();
 			}
+		}
+		
+		void DisposeSource() {
+			if (source == uint.MaxValue) return;
+			uint sourceU = source;
+			
+			fixed (uint* buffers = bufferIDs) {
+				lock (contextLock) {
+					MakeContextCurrent();
+					AL.alDeleteSources(1, &sourceU);
+					source = uint.MaxValue;
+					CheckError("DeleteSources");
+
+					AL.alDeleteBuffers(NumBuffers, buffers);
+					CheckError("DeleteBuffers");
+				}
+			}
+		}
+		
+		public override void SetFormat(AudioFormat format) {
+			dataFormat = GetALFormat(format.Channels, format.BitsPerSample);
+			// Don't need to recreate device if it's the same
+			if (Format.Equals(format)) return;
+			Format = format;
+			
+			DisposeSource();
+			uint sourceU = 0;
+			
+			fixed (uint* buffers = bufferIDs) {
+				lock (contextLock) {
+					MakeContextCurrent();
+					AL.alGenSources(1, &sourceU);
+					source = sourceU;
+					CheckError("GenSources");
+					
+					AL.alGenBuffers(NumBuffers, buffers);
+					CheckError("GenBuffers");
+				}
+			}
+			
+			if (volume != 1) SetVolume(volume);
+		}
+		
+		static ALFormat GetALFormat(int channels, int bitsPerSample) {
+			ALFormat format;
+			switch (channels) {
+					case 1: format = ALFormat.Mono8; break;
+					case 2: format = ALFormat.Stereo8; break;
+					default: throw new NotSupportedException("Unsupported number of channels: " + channels);
+			}
+			
+			if (bitsPerSample == 8)  return format;
+			if (bitsPerSample == 16) return (ALFormat)(format + 1);
+			throw new NotSupportedException("Unsupported bits per sample: " + bitsPerSample);
+		}
+
+		
+		static IntPtr device, context;
+		static int contextRefs = 0;
+		
+		static void CreateContext() {
+			device = AL.alcOpenDevice(IntPtr.Zero);
+			if (device == IntPtr.Zero) {
+				throw new AudioException("Unable to open default OpenAL device");
+			}
+			CheckContextErrors();
+
+			context = AL.alcCreateContext(device, null);
+			if (context == IntPtr.Zero) {
+				AL.alcCloseDevice(device);
+				throw new AudioException("Audio context could not be created");
+			}
+			CheckContextErrors();
+
+			MakeContextCurrent();
+			CheckContextErrors();
+		}
+
+		static void CheckContextErrors() {
+			const string format = "Device {0} reported {1}.";
+			AlcError err = AL.alcGetError(device);
+			
+			switch (err) {
+				case AlcError.OutOfMemory:
+					throw new OutOfMemoryException(String.Format(format, device, err));
+				case AlcError.InvalidValue:
+					throw new AudioException(String.Format(format, device, err));
+				case AlcError.InvalidDevice:
+					throw new AudioException(String.Format(format, device, err));
+				case AlcError.InvalidContext:
+					throw new AudioException(String.Format(format, device, err));
+			}
+		}
+		
+		static void MakeContextCurrent() {
+			AL.alcMakeContextCurrent(context);
+		}
+		
+		static void DestroyContext() {
+			if (device == IntPtr.Zero) return;
+			AL.alcMakeContextCurrent(IntPtr.Zero);
+
+			if (context != IntPtr.Zero)
+				AL.alcDestroyContext(context);
+			if (device != IntPtr.Zero)
+				AL.alcCloseDevice(device);
+			
+			context = IntPtr.Zero;
+			device  = IntPtr.Zero;
 		}
 	}
 }

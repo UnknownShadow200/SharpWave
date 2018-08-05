@@ -4,23 +4,14 @@ using System.IO;
 
 namespace SharpWave.Codecs {
 	
-	public interface ICodec {
-		
-		IEnumerable<AudioChunk> StreamData( Stream source );
-		
+	public interface ICodec {		
+		AudioFormat ReadHeader(Stream source);
+		IEnumerable<AudioChunk> StreamData(Stream source);
 		string Name { get; }
 	}
 	
 	public sealed class AudioChunk {
-		public int SampleRate;
-		public int Channels;
-		public int BitsPerSample;
 		public byte[] Data;
-		public int BytesUsed; // can be 0
-		public int BytesOffset; // offset inside data to start playing at
-		
-		public int Length {
-			get { return BytesUsed > 0 ? BytesUsed : Data.Length; }
-		}
+		public int Length;
 	}
 }

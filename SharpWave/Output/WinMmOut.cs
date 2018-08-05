@@ -7,178 +7,130 @@ namespace SharpWave {
 	
 	/// <summary> Outputs audio to the default sound playback device using the
 	/// native WinMm library. Windows only. </summary>
-	public sealed partial class WinMmOut : IAudioOutput {
-		
-		IntPtr devHandle;
-		readonly int waveHeaderSize;
-		public WinMmOut() {
-			waveHeaderSize = Marshal.SizeOf( default( WaveHeader ) );
-			
-		}
-		IntPtr headers;
+	public unsafe sealed class WinMmOut : IAudioOutput {	
+		IntPtr devHandle, headers;
 		IntPtr[] dataHandles;
 		int[] dataSizes;
-		
-		LastChunk last;
-		public LastChunk Last { get { return last; } }
-		int volumePercent = 100;
+		int volumePercent = 100, waveHeaderSize;
 
-		public void SetVolume(float volume) { volumePercent = (int)(volume * 100); }
+		public override void SetVolume(float volume) { volumePercent = (int)(volume * 100); }
 
-		public void Create( int numBuffers ) {
-			headers = Marshal.AllocHGlobal( waveHeaderSize * numBuffers );
+		public override void Create(int numBuffers) {
+			waveHeaderSize = Marshal.SizeOf(default(WaveHeader));
+			headers = Marshal.AllocHGlobal(waveHeaderSize * numBuffers);
 			dataHandles = new IntPtr[numBuffers];
 			dataSizes = new int[numBuffers];
-		}
-		
-		public void Create( int numBuffers, IAudioOutput share ) {
-			Create( numBuffers );
-		}
-		
-		public unsafe void PlayRaw( AudioChunk chunk ) {
-			Initalise( chunk );
-			UpdateBuffer( 0, chunk );
 			
-			while( true ) {
-				WaveHeader header = *((WaveHeader*)headers);
-				if( (header.Flags & WaveHeaderFlags.Done) != 0 ) {
-					Free( 0 );
-					break;
-				}
-				Thread.Sleep( 1 );
+			for (int i = 0; i < numBuffers; i++) {
+				WaveHeader* hdr = (WaveHeader*)headers + i;
+				hdr->Flags = WaveHeaderFlags.Done;
 			}
+			NumBuffers = numBuffers;
 		}
-		
-		bool playingAsync;
-		public void PlayRawAsync( AudioChunk chunk ) {
-			Initalise( chunk );
-			UpdateBuffer( 0, chunk );
-			playingAsync = true;
-		}
-		
-		public unsafe bool DoneRawAsync() {
-			if( !playingAsync ) return true;
-			WaveHeader header = *((WaveHeader*)headers);
-			if( (header.Flags & WaveHeaderFlags.Done) != 0 ) {
-				Free( 0 );
-				playingAsync = false;
-				return true;
-			}
-			return false;
-		}
-		
-		
-		bool pendingStop;
-		public void Stop() { pendingStop = true; }
-		
-		public void Initalise( AudioChunk first ) {
-			// Don't need to recreate device if it's the same.
-			if( last.BitsPerSample == first.BitsPerSample
-			   && last.Channels    == first.Channels
-			   && last.SampleRate  == first.SampleRate ) return;
-			
-			last.SampleRate    = first.SampleRate;
-			last.BitsPerSample = first.BitsPerSample;
-			last.Channels      = first.Channels;
-			
-			Console.WriteLine( "init" );
-			DisposeDevice();
-			WaveFormatEx format = new WaveFormatEx();
-			
-			format.Channels = (ushort)first.Channels;
-			format.ExtraSize = 0;
-			format.FormatTag = WaveFormatTag.Pcm;
-			format.BitsPerSample = (ushort)first.BitsPerSample;
-			format.BlockAlign = (ushort)(format.Channels * format.BitsPerSample / 8);
-			format.SampleRate = (uint)first.SampleRate;
-			format.AverageBytesPerSecond = (int)format.SampleRate * format.BlockAlign;
-			
-			WaveOpenFlags flags = WaveOpenFlags.CallbackNull;
-			uint devices = WinMmNative.waveOutGetNumDevs();
-			if( devices == 0 )
-				throw new InvalidOperationException( "No audio devices found" );
 
-			uint result = WinMmNative.waveOutOpen( out devHandle, (IntPtr)(-1), ref format,
-			                                      IntPtr.Zero, UIntPtr.Zero, flags );
-			CheckError( result, "Open" );
+		public override bool IsCompleted(int index) {
+			WaveHeader* hdr = (WaveHeader*)headers + index;
+			if ((hdr->Flags & WaveHeaderFlags.Done) == 0) return false;
+
+			if ((hdr->Flags & WaveHeaderFlags.Prepared) != 0) {
+				uint result = WinMM.waveOutUnprepareHeader(devHandle, (IntPtr)hdr, waveHeaderSize);
+				CheckError(result, "UnprepareHeader");
+			}
+			return true;
+		}
+
+		const ushort pcmFormat = 1;
+		public override bool IsFinished() {
+			for (int i = 0; i < NumBuffers; i++) {
+				if (!IsCompleted(i)) return false;
+			}
+			return true;
 		}
 		
-		unsafe void UpdateBuffer( int index, AudioChunk chunk ) {
-			WaveHeader header = new WaveHeader();
-			byte[] data = chunk.Data;
-			CheckBufferSize( index, chunk.Length );
-			IntPtr handle = dataHandles[index];
-			fixed( byte* src = data ) {
-				byte* chunkPtr = src + chunk.BytesOffset;
-				MemUtils.memcpy( (IntPtr)chunkPtr, handle, chunk.Length );
-				ApplyVolume( handle, chunk );
+		public override void SetFormat(AudioFormat format) {
+			// Don't need to recreate device if it's the same
+			if (Format.Equals(format)) return;
+			Format = format;
+			
+			Console.WriteLine("init");
+			DisposeDevice();
+			WaveFormatEx fmt = default(WaveFormatEx);
+			
+			fmt.Channels = (ushort)format.Channels;
+			fmt.FormatTag = pcmFormat;
+			fmt.BitsPerSample = (ushort)format.BitsPerSample;
+			fmt.BlockAlign = (ushort)(fmt.Channels * fmt.BitsPerSample / 8);
+			fmt.SampleRate = (uint)format.SampleRate;
+			fmt.AverageBytesPerSecond = (int)fmt.SampleRate * fmt.BlockAlign;
+			
+			uint devices = WinMM.waveOutGetNumDevs();
+			if (devices == 0) throw new InvalidOperationException("No audio devices found");
+
+			uint result = WinMM.waveOutOpen(out devHandle, (IntPtr)(-1), ref fmt,
+			                                      IntPtr.Zero, UIntPtr.Zero, 0);
+			CheckError(result, "Open");
+		}
+		
+		public override void PlayData(int index, AudioChunk chunk) {			
+			if (chunk.Length > dataSizes[index]) {
+				IntPtr ptr = dataHandles[index];
+				if (ptr != IntPtr.Zero) Marshal.FreeHGlobal(ptr);
+				dataHandles[index] = Marshal.AllocHGlobal(chunk.Length);
 			}
 			
+			IntPtr handle = dataHandles[index];
+			fixed (byte* data = chunk.Data) {
+				MemUtils.memcpy((IntPtr)data, handle, chunk.Length);
+				ApplyVolume(handle, chunk);
+			}
+			
+			WaveHeader header = default(WaveHeader);
 			header.DataBuffer = handle;
 			header.BufferLength = chunk.Length;
 			header.Loops = 1;
-			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
-			*((WaveHeader*)address) = header;
 			
-			uint result = WinMmNative.waveOutPrepareHeader( devHandle, address, (uint)waveHeaderSize );
-			CheckError( result, "PrepareHeader" );
-			result = WinMmNative.waveOutWrite( devHandle, address, (uint)waveHeaderSize );
-			CheckError( result, "Write" );
+			WaveHeader* hdr = (WaveHeader*)headers + index;
+			*hdr = header;
+			
+			uint result = WinMM.waveOutPrepareHeader(devHandle, (IntPtr)hdr, waveHeaderSize);
+			CheckError(result, "PrepareHeader");
+			result = WinMM.waveOutWrite(devHandle, (IntPtr)hdr, waveHeaderSize);
+			CheckError(result, "Write");
 		}
 		
-		unsafe void ApplyVolume( IntPtr handle, AudioChunk chunk ) {
+		void ApplyVolume(IntPtr handle, AudioChunk chunk) {
 			if (volumePercent == 100) return;
 			
-			if (chunk.BitsPerSample == 16) {
+			if (Format.BitsPerSample == 16) {
 				VolumeMixer.Mix16((short*)handle, chunk.Length / sizeof(short), volumePercent);
-			} else if (chunk.BitsPerSample == 8) {
+			} else if (Format.BitsPerSample == 8) {
 				VolumeMixer.Mix8((byte*)handle, chunk.Length, volumePercent);
 			}
 		}
-		
-		void CheckBufferSize( int index, int chunkDataSize ) {
-			if( chunkDataSize <= dataSizes[index] ) return;
+
+		void CheckError(uint result, string func) {
+			if (result == 0) return;
 			
-			IntPtr ptr = dataHandles[index];
-			if( ptr != IntPtr.Zero )
-				Marshal.FreeHGlobal( ptr );
-			dataHandles[index] = Marshal.AllocHGlobal( chunkDataSize );
-		}
-		
-		unsafe void Free( int index ) {
-			IntPtr address = (IntPtr)((byte*)headers + index * waveHeaderSize );
-			uint result = WinMmNative.waveOutUnprepareHeader( devHandle, address, (uint)waveHeaderSize );
-			CheckError( result, "UnprepareHeader" );
-		}
-		
-		void CheckError( uint result, string func ) {
-			if( result == 0 ) return;
-			
-			string description = WinMmNative.GetErrorDescription( result );
+			string description = WinMM.GetErrorDescription(result);
 			const string format = "{0} at {1} ({2})";
-			string text = String.Format( format, result, func, description );
-			throw new InvalidOperationException( text );
+			string text = String.Format(format, result, func, description);
+			throw new InvalidOperationException(text);
 		}
 		
-		public void Dispose() {
-			Console.WriteLine( "dispose" );
+		public override void Dispose() {
+			Console.WriteLine("dispose");
 			DisposeDevice();
-			for( int i = 0; i < dataHandles.Length; i++ )
-				Marshal.FreeHGlobal( dataHandles[i] );
+			for (int i = 0; i < dataHandles.Length; i++)
+				Marshal.FreeHGlobal(dataHandles[i]);
 		}
 		
 		void DisposeDevice() {
-			if( devHandle == IntPtr.Zero) return;
+			if (devHandle == IntPtr.Zero) return;
 			
-			Console.WriteLine( "disposing device" );
-			uint result = WinMmNative.waveOutClose( devHandle );
-			CheckError( result, "Close" );
+			Console.WriteLine("disposing device");
+			uint result = WinMM.waveOutClose(devHandle);
+			CheckError(result, "Close");
 			devHandle = IntPtr.Zero;
 		}
-		
-		public void SetListenerPos(float x, float y, float z) { }		
-		public void SetListenerDir(float yaw) { }
-		public void SetSoundPos(float x, float y, float z) { }
-		public void SetSoundGain(float gain) { }
 	}
 }
